@@ -553,7 +553,7 @@ function shRooftop(x,p,lt){setCam(lerp(.6,-.6,esin(p)),1.55,lerp(0,1.1,p),.5);
     if(rr()<.2){const bl=Math.sin(lt*4+bx)>.6;if(bl)glow(x,bx+bw/2,HY-bh-U*4,U*14,[255,60,40],.9)}bx+=bw+U*4}
   glow(x,W*.5,HY,W*.8,[255,140,90],.12);
   const deck=P(0,0,7.2);x.fillStyle=lg(x,0,deck.y,0,H,[[0,'#3b2a1d'],[1,'#120c07']]);x.fillRect(0,deck.y,W,H-deck.y);
-  for(let z=1;z<7.2;z+=.35){const a=P(0,0,z);x.fillStyle='rgba(0,0,0,.18)';x.fillRect(0,a.y,W,1)}
+  for(let z=1;z<7.2;z+=.35){const a=P(0,0,z);if(!a)continue;x.fillStyle='rgba(0,0,0,.18)';x.fillRect(0,a.y,W,1)}
   const rl=P(0,1.05,7.2);x.fillStyle='rgba(180,200,220,.06)';x.fillRect(0,rl.y,W,deck.y-rl.y);x.fillStyle='rgba(255,230,200,.5)';x.fillRect(0,rl.y,W,Math.max(1,.02*rl.s));
   const items=[];const r2=R(29);
   for(const z of[2.6,4.2,5.8])for(const xx of[-3.6,-1.2,1.2,3.6]){const px=xx+(r2()-.5)*.8;items.push({z,d:x=>{const t=P(px,.42,z),b=P(px,0,z);if(!t)return;
