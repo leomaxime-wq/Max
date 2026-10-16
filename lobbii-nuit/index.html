@@ -1,0 +1,442 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1080">
+<title>LOBBII 24 Heures</title>
+<style>
+  :root{--cream:#F4EEE3;--ivory:#FBF8F2;--ink:#0B0B0D;--gold:#B8955A;--gold2:#D9BE8A;--muted:#8A8173;--line:#E7DFD1;--green:#2f7a4d}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:1080px;height:1920px;overflow:hidden;background:#000}
+  body{font-family:"Inter Display","Inter",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+  #stage{position:absolute;inset:0;overflow:hidden;background:#000}
+  .scene{position:absolute;inset:0;opacity:0;overflow:hidden}
+  .layer{position:absolute;inset:0}
+  svg{display:block}
+  .cap{position:absolute;left:80px;right:80px;text-align:center;font-weight:300;font-size:58px;line-height:1.18;color:var(--ivory);opacity:0}
+  .cap b{font-weight:500}
+  .kick{display:block;font:500 26px Inter;letter-spacing:.34em;color:var(--gold2);margin-bottom:18px;margin-right:-.34em}
+  .chip{position:absolute;left:0;right:0;top:110px;text-align:center;font:400 26px Inter;letter-spacing:.3em;color:rgba(251,248,242,.75);opacity:0;margin-right:-.3em}
+  .chip b{font:300 26px "Inter Display";letter-spacing:.3em;color:var(--gold2);font-weight:400}
+  #bigclock{position:absolute;left:0;right:0;top:760px;text-align:center;font:200 230px "Inter Display";letter-spacing:.04em;color:var(--ivory);opacity:0}
+  #bigclock small{display:block;font:400 26px Inter;letter-spacing:.42em;color:var(--gold2);margin-top:10px;margin-right:-.42em}
+
+  /* phone · WhatsApp dark */
+  #phone{position:absolute;left:200px;top:330px;width:680px;height:1380px;border-radius:94px;background:#050505;padding:20px;
+         box-shadow:0 70px 140px rgba(0,0,0,.8),0 0 0 2px #24221f inset,0 0 0 1px #34302a,0 0 160px rgba(120,150,190,.12)}
+  #screen{position:relative;width:100%;height:100%;border-radius:76px;overflow:hidden;background:#0B141A}
+  .island{position:absolute;top:22px;left:50%;width:180px;height:52px;margin-left:-90px;border-radius:30px;background:#000;z-index:5}
+  .status{position:absolute;top:28px;left:54px;right:54px;display:flex;justify-content:space-between;font:600 29px Inter;color:#E9EDEF;z-index:4}
+  .wa-head{position:absolute;top:0;left:0;right:0;height:204px;background:#1F2C34;display:flex;align-items:flex-end;padding:0 32px 24px;gap:20px;z-index:3}
+  .wa-back{font:400 50px Inter;color:#8696A0;line-height:1}
+  .avatar{width:80px;height:80px;border-radius:50%;background:linear-gradient(145deg,#1a1814,#3a342a);display:flex;align-items:center;justify-content:center;color:var(--gold2);font:500 38px "Inter Display";box-shadow:0 0 0 2px var(--gold) inset}
+  .wa-name{font:600 34px Inter;color:#E9EDEF}
+  .wa-name small{display:block;font:400 25px Inter;color:#8696A0;margin-top:4px}
+  .wa-body{position:absolute;top:204px;left:0;right:0;bottom:146px;padding:28px 26px;display:flex;flex-direction:column;justify-content:flex-end;gap:16px;background:#0B141A}
+  .day{align-self:center;background:#182229;border-radius:14px;padding:8px 18px;font:500 22px Inter;color:#8696A0}
+  .bub{position:relative;max-width:84%;padding:18px 24px 32px;border-radius:24px;font:400 31px/1.34 Inter;color:#E9EDEF;display:none}
+  .bub .t{position:absolute;right:18px;bottom:8px;font:400 19px Inter;color:#8696A0}
+  .bub.out{align-self:flex-end;background:#005C4B;border-top-right-radius:6px}
+  .bub.in{align-self:flex-start;background:#1F2C34;border-top-left-radius:6px}
+  .ticks{color:#53bdeb;margin-left:6px}
+  .typing{align-self:flex-start;background:#1F2C34;border-radius:24px;border-top-left-radius:6px;padding:24px 28px;gap:10px;display:none}
+  .typing i{width:14px;height:14px;border-radius:50%;background:#8696A0}
+  .wa-input{position:absolute;left:0;right:0;bottom:0;height:146px;background:#1F2C34;display:flex;align-items:flex-start;padding:22px 24px;gap:16px}
+  .wa-field{flex:1;height:74px;border-radius:40px;background:#2A3942;padding:0 28px;display:flex;align-items:center;font:400 29px Inter;color:#E9EDEF;white-space:nowrap;overflow:hidden}
+  .wa-field .ph{color:#8696A0}
+  .caret{display:inline-block;width:3px;height:34px;background:#00A884;margin-left:2px}
+  .wa-send{width:74px;height:74px;border-radius:50%;background:#00A884;display:flex;align-items:center;justify-content:center}
+
+  /* Victoria card */
+  #vui{position:absolute;left:80px;right:80px;top:1080px;border-radius:40px;background:rgba(251,248,242,.95);box-shadow:0 40px 80px rgba(0,0,0,.35);padding:32px 40px 34px;opacity:0}
+  #vui .hd{display:flex;align-items:center;gap:16px;font:500 28px Inter;color:#1b1814}
+  #vui .orb{width:46px;height:46px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#f3e3c0,#B8955A 70%);box-shadow:0 0 0 6px rgba(184,149,90,.15)}
+  #vui .hd span{margin-left:auto;font:500 19px Inter;letter-spacing:.18em;text-transform:uppercase;color:var(--gold)}
+  #vui .tx{margin-top:20px;font:400 31px/1.36 Inter;color:#1b1814}
+  #vui .tx .g{color:#4f4a42}
+  #vui .tx .v{color:#8d6a2f;margin-top:16px}
+  #vui .tx i{display:block;font:italic 300 23px/1.35 Inter;color:#8a8173;margin-top:4px}
+
+  /* dashboard */
+  #dcam{position:absolute;left:0;top:0;width:1600px;height:1000px;transform-origin:0 0}
+  #bezel{position:absolute;left:-34px;top:-34px;width:1668px;height:1068px;border-radius:44px;background:#121110;box-shadow:0 0 0 2px #34302a inset,0 80px 160px rgba(0,0,0,.6)}
+  #dash{position:absolute;inset:0;border-radius:12px;overflow:hidden;background:#F6F2EA;font-family:Inter;color:#1b1814}
+  .side{position:absolute;left:0;top:0;bottom:0;width:220px;background:#141311;padding:34px 26px;color:#bdb4a5}
+  .side .lg{font:300 30px "Inter Display";letter-spacing:.32em;color:#F4EEE3;margin-bottom:46px}
+  .side .nav{font:400 19px Inter;padding:13px 14px;border-radius:10px;margin-bottom:6px;display:flex;align-items:center;gap:12px}
+  .side .nav i{width:8px;height:8px;border-radius:2px;background:#5b5549}
+  .side .nav.on{background:#262320;color:#F4EEE3}.side .nav.on i{background:var(--gold)}
+  .side .ht{position:absolute;left:26px;right:26px;bottom:30px;font:500 16px Inter;color:#8a8173;border-top:1px solid #2a2722;padding-top:18px}
+  .side .ht b{display:block;color:#F4EEE3;font-weight:500;font-size:18px;margin-bottom:4px}
+  .top{position:absolute;left:240px;right:20px;top:20px;height:48px;display:flex;align-items:center;justify-content:space-between}
+  .top h1{font:500 26px "Inter Display"}
+  .top h1 span{font-weight:300;color:#8a8173;margin-left:12px;font-size:20px}
+  .live{display:flex;align-items:center;gap:10px;font:500 16px Inter;letter-spacing:.14em;text-transform:uppercase;color:var(--green)}
+  .live i{width:10px;height:10px;border-radius:50%;background:#3fae6c;box-shadow:0 0 0 5px rgba(63,174,108,.18)}
+  .pan{position:absolute;background:#fff;border:1px solid var(--line);border-radius:18px;padding:20px 24px;overflow:hidden}
+  .pan h2{font:500 15px Inter;letter-spacing:.14em;text-transform:uppercase;color:#8a8173;display:flex;justify-content:space-between;margin-bottom:10px}
+  .pan h2 em{font-style:normal;color:var(--gold);letter-spacing:.06em}
+  .fi{display:grid;grid-template-columns:70px 44px 500px auto;justify-content:start;gap:14px;align-items:center;padding:13px 0;border-top:1px solid #f0eae0}
+  .fi .h{font:300 22px "Inter Display";color:#8a8173}
+  .ch{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font:600 14px Inter;color:#fff}
+  .ch.wa{background:#1d8a5c}.ch.vo{background:var(--gold)}
+  .fi .m{font:500 19px Inter}.fi .m span{display:block;font:400 15px Inter;color:#8a8173;margin-top:3px}
+  .st{padding:6px 12px;border-radius:20px;font:500 14px Inter;white-space:nowrap}
+  .st.ok{background:#E3F1E7;color:#2f7a4d}.st.go{background:#F4EAD6;color:#8d6a2f}.st.as{background:#E8EEF5;color:#3d5f86}
+  .op{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-top:1px solid #f0eae0;font:500 18px Inter}
+  .op span{display:block;font:400 14px Inter;color:#8a8173;margin-top:2px}
+  .tm{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:6px}
+  .tm div{background:#FAF7F1;border:1px solid var(--line);border-radius:12px;padding:12px 14px;font:500 16px Inter}
+  .tm div span{display:block;font:400 13px Inter;color:#8a8173;margin-top:4px}
+  .tm div i{display:block;height:6px;border-radius:3px;background:#efe7d8;margin-top:10px;overflow:hidden}
+  .tm div i b{display:block;height:100%;background:linear-gradient(90deg,#B8955A,#D9BE8A)}
+
+  /* end */
+  #logo{position:absolute;left:0;right:0;top:700px;text-align:center}
+  #logo .word{font:300 150px "Inter Display";letter-spacing:.32em;color:var(--ink);margin-right:-.32em;display:inline-block}
+  #logo .word span{display:inline-block;opacity:0}
+  #logo .lbar{width:0;height:2px;background:var(--gold);margin:44px auto 0}
+  .end{position:absolute;left:80px;right:80px;text-align:center;opacity:0}
+  #cta{display:inline-flex;align-items:center;gap:18px;padding:26px 46px;border-radius:60px;background:var(--ink);color:var(--ivory);font:400 32px Inter}
+  #cta b{font-weight:500;color:var(--gold2)}
+
+  #grain{position:absolute;inset:-200px;pointer-events:none;opacity:.07;mix-blend-mode:overlay;z-index:50}
+  #vign{position:absolute;inset:0;pointer-events:none;z-index:49;background:radial-gradient(ellipse at 50% 45%,transparent 50%,rgba(0,0,0,.45) 100%)}
+  #bars{position:absolute;inset:0;pointer-events:none;z-index:48}
+</style>
+</head>
+<body>
+<div id="stage">
+
+  <!-- ============ S0 · 03:12 ============ -->
+  <div class="scene" id="s0" style="background:#000"></div>
+
+  <!-- ============ S1 · NIGHT SUITE + WHATSAPP ============ -->
+  <div class="scene" id="s1">
+    <div class="layer" id="s1cam">
+      <svg width="1080" height="1920" viewBox="0 0 1080 1920">
+        <defs>
+          <linearGradient id="nsky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0a0f1a"/><stop offset="1" stop-color="#1a2536"/></linearGradient>
+          <linearGradient id="nsea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#131c28"/><stop offset="1" stop-color="#070a10"/></linearGradient>
+          <radialGradient id="lamp" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#ffcf8a" stop-opacity=".55"/><stop offset="1" stop-color="#ffcf8a" stop-opacity="0"/></radialGradient>
+          <radialGradient id="moonG" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#dfe6ef" stop-opacity=".5"/><stop offset="1" stop-color="#dfe6ef" stop-opacity="0"/></radialGradient>
+          <radialGradient id="glowP" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#9fc4ff" stop-opacity=".35"/><stop offset="1" stop-color="#9fc4ff" stop-opacity="0"/></radialGradient>
+          <clipPath id="nwin"><rect x="150" y="300" width="780" height="1000"/></clipPath>
+        </defs>
+        <rect width="1080" height="1920" fill="#0b0b0e"/>
+        <g clip-path="url(#nwin)">
+          <rect x="150" y="300" width="780" height="1000" fill="url(#nsky)"/>
+          <g id="stars"></g>
+          <circle cx="720" cy="560" r="160" fill="url(#moonG)"/>
+          <circle cx="720" cy="560" r="44" fill="#e9eef5"/>
+          <rect x="150" y="860" width="780" height="440" fill="url(#nsea)"/>
+          <g id="moonpath"></g>
+        </g>
+        <rect x="140" y="290" width="800" height="1020" fill="none" stroke="#050506" stroke-width="18"/>
+        <rect x="532" y="300" width="16" height="1000" fill="#050506"/>
+        <path d="M0 240 h200 q-30 400 20 800 q-40 300 -10 520 H0z" fill="#17150f"/>
+        <path d="M1080 240 h-200 q30 400 -20 800 q40 300 10 520 H1080z" fill="#17150f"/>
+        <!-- lamp -->
+        <ellipse cx="930" cy="1340" rx="320" ry="320" fill="url(#lamp)"/>
+        <path d="M880 1300 h100 l-20 -90 h-60z" fill="#e8c792" opacity=".85"/>
+        <rect x="925" y="1300" width="10" height="120" fill="#2a2620"/>
+        <!-- bed -->
+        <path d="M-40 1500 Q540 1430 1120 1500 V1920 H-40z" fill="#1d2230"/>
+        <path d="M-40 1500 Q540 1430 1120 1500" stroke="#2c3346" stroke-width="3" fill="none"/>
+        <rect x="80" y="1420" width="320" height="120" rx="50" fill="#262c3c"/>
+        <!-- guest sitting in bed, phone glow -->
+        <ellipse cx="420" cy="1380" rx="200" ry="200" fill="url(#glowP)"/>
+        <g fill="#08090c" transform="translate(380 1250)">
+          <path d="M-34 -6 q-6 -52 34 -56 q40 4 36 54 q4 40 14 70 q-26 10 -40 -6 q-6 -14 -10 -18 q-10 2 -20 0 q-4 20 -16 28 q-12 -30 2 -72z"/>
+          <path d="M-14 52 h28 v26 q70 10 92 60 q22 70 26 250 h-264 q4 -180 26 -250 q22 -50 92 -60z"/>
+        </g>
+        <rect x="425" y="1335" width="26" height="44" rx="5" fill="#bcd6ff" opacity=".9"/>
+      </svg>
+    </div>
+    <div class="layer" id="phonewrap" style="perspective:2400px">
+      <div id="phone"><div id="screen">
+        <div class="island"></div>
+        <div class="status"><span>03:12</span><span>●●● 5G ▮</span></div>
+        <div class="wa-head"><div class="wa-back">‹</div><div class="avatar">A</div>
+          <div class="wa-name">Alfred · Hôtel Belvédère<small id="wastatus">en ligne</small></div></div>
+        <div class="wa-body">
+          <div class="day">Aujourd’hui</div>
+          <div class="bub out" id="b1">Bonsoir, je n’arrive pas à dormir. Une tisane, ce serait possible&nbsp;?<span class="t">03:12 <span class="ticks">✓✓</span></span></div>
+          <div class="typing" id="typ"><i></i><i></i><i></i></div>
+          <div class="bub in" id="b2">Bien sûr. Une camomille et un plaid vous sont montés dans dix minutes. Belle nuit.<span class="t">03:12</span></div>
+        </div>
+        <div class="wa-input"><div class="wa-field" id="field"><span class="ph">Message</span></div>
+          <div class="wa-send"><svg width="32" height="32" viewBox="0 0 24 24"><path d="M3 20l18-8L3 4v6l12 2-12 2z" fill="#fff"/></svg></div></div>
+      </div></div>
+    </div>
+    <div class="cap" id="c1" style="top:1755px;font-size:40px"><b style="letter-spacing:.3em">ALFRED</b>&nbsp; répond. Même à 3 heures du matin.</div>
+  </div>
+
+  <!-- ============ S2 · MORNING SUITE + VICTORIA ============ -->
+  <div class="scene" id="s2">
+    <div class="layer" id="s2cam">
+      <svg width="1080" height="1920" viewBox="0 0 1080 1920">
+        <defs>
+          <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#C9D6DC"/><stop offset=".7" stop-color="#EADFCB"/><stop offset="1" stop-color="#F6E6C8"/></linearGradient>
+          <linearGradient id="sea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7E98A0"/><stop offset="1" stop-color="#3E5A63"/></linearGradient>
+          <linearGradient id="room" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#E9E0D1"/><stop offset="1" stop-color="#CFC2AC"/></linearGradient>
+          <linearGradient id="curt" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#EDE4D4"/><stop offset=".5" stop-color="#F8F2E7"/><stop offset="1" stop-color="#DCCFBA"/></linearGradient>
+          <linearGradient id="bed" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FBF8F2"/><stop offset="1" stop-color="#E8DFD0"/></linearGradient>
+          <clipPath id="win"><rect x="150" y="300" width="780" height="1040"/></clipPath>
+          <filter id="blur3"><feGaussianBlur stdDeviation="3"/></filter><filter id="blur20"><feGaussianBlur stdDeviation="22"/></filter>
+        </defs>
+        <rect width="1080" height="1920" fill="url(#room)"/>
+        <g clip-path="url(#win)">
+          <rect x="150" y="300" width="780" height="1040" fill="url(#sky)"/>
+          <circle cx="380" cy="820" r="54" fill="#FFF3D6" opacity=".95" filter="url(#blur3)"/>
+          <circle cx="380" cy="820" r="200" fill="#FFF0CC" opacity=".4" filter="url(#blur20)"/>
+          <rect x="150" y="860" width="780" height="480" fill="url(#sea)"/>
+          <g id="glitter"></g>
+          <rect x="150" y="1080" width="780" height="8" fill="#2a2620"/>
+          <g id="rails"></g>
+        </g>
+        <rect x="140" y="290" width="800" height="1060" fill="none" stroke="#2a2620" stroke-width="18"/>
+        <rect x="532" y="300" width="16" height="1040" fill="#2a2620"/>
+        <path id="curtL" d="M0 240 h210 q-30 400 20 800 q-40 300 -10 520 H0z" fill="url(#curt)"/>
+        <path id="curtR" d="M1080 240 h-210 q30 400 -20 800 q40 300 10 520 H1080z" fill="url(#curt)"/>
+        <rect x="0" y="228" width="1080" height="16" fill="#B8955A" opacity=".8"/>
+        <path d="M-40 1520 Q540 1440 1120 1520 V1920 H-40z" fill="url(#bed)"/>
+        <rect x="120" y="1440" width="300" height="120" rx="50" fill="#FBF8F2" opacity=".95"/>
+        <rect x="660" y="1440" width="300" height="120" rx="50" fill="#F3ECE0" opacity=".95"/>
+        <!-- suitcase -->
+        <rect x="740" y="1250" width="150" height="210" rx="16" fill="#3b3226"/><rect x="790" y="1222" width="50" height="30" rx="8" fill="none" stroke="#3b3226" stroke-width="8"/>
+        <g fill="#1b1814" opacity=".94" transform="translate(420 1130)">
+          <path d="M-34 -6 q-6 -52 34 -56 q40 4 36 54 q4 40 14 70 q-26 10 -40 -6 q-6 -14 -10 -18 q-10 2 -20 0 q-4 20 -16 28 q-12 -30 2 -72z"/>
+          <path d="M-14 52 h28 v26 q70 10 92 60 q22 70 26 250 h-264 q4 -180 26 -250 q22 -50 92 -60z"/>
+        </g>
+      </svg>
+    </div>
+    <div class="layer" style="background:linear-gradient(0deg,rgba(11,11,13,.9) 0%,rgba(11,11,13,.6) 16%,rgba(11,11,13,0) 45%)"></div>
+    <div id="vui">
+      <div class="hd"><div class="orb" id="orb"></div>Victoria<span id="vstate">À l’écoute</span></div>
+      <svg width="840" height="80" style="margin-top:16px"><g id="wave" transform="translate(420 40)"></g></svg>
+      <div class="tx" id="vtx"></div>
+    </div>
+    <div class="cap" id="c2" style="top:1700px;font-size:44px"><span class="kick">VICTORIA</span>Elle répond dans la langue <b>de chaque client.</b></div>
+  </div>
+
+  <!-- ============ S3 · DASHBOARD ============ -->
+  <div class="scene" id="s3" style="background:radial-gradient(ellipse at 50% 35%,#2a261f 0%,#121110 65%,#0b0b0d 100%)">
+    <div id="dcam">
+      <div id="bezel"></div>
+      <div id="dash">
+        <div class="side">
+          <div class="lg">LOBBII</div>
+          <div class="nav on"><i></i>Vue d’ensemble</div><div class="nav"><i></i>Conversations</div><div class="nav"><i></i>Demandes</div>
+          <div class="nav"><i></i>Équipes</div><div class="nav"><i></i>Opportunités</div><div class="nav"><i></i>Rapports</div>
+          <div class="ht"><b>Hôtel Belvédère</b>Direction</div>
+        </div>
+        <div class="top"><h1>Depuis minuit<span>Mardi · 11:30</span></h1><div class="live"><i></i>En direct</div></div>
+        <div class="pan" style="left:240px;top:84px;width:1340px;height:470px">
+          <h2>Demandes clients <em>WhatsApp · Voix</em></h2>
+          <div class="fi" id="f1"><div class="h">03:12</div><div class="ch wa">WA</div><div class="m">Ch. 412 · Tisane et plaid<span>Room service · Alfred</span></div><div class="st ok">Livré à 03:24</div></div>
+          <div class="fi" id="f2"><div class="h">07:45</div><div class="ch vo">VO</div><div class="m">Ch. 318 · Taxi pour l’aéroport, 9 h<span>Conciergerie · Victoria · anglais</span></div><div class="st ok">Réservé</div></div>
+          <div class="fi" id="f3"><div class="h">08:10</div><div class="ch wa">WA</div><div class="m">Ch. 205 · Late check-out<span>Réception · Alfred</span></div><div class="st ok">Accepté</div></div>
+          <div class="fi" id="f4"><div class="h">10:02</div><div class="ch wa">WA</div><div class="m">Ch. 507 · Table ce soir, terrasse<span>Restaurant · Alfred</span></div><div class="st ok">Réservé</div></div>
+          <div class="fi" id="f5"><div class="h">11:28</div><div class="ch vo">VO</div><div class="m">Ch. 112 · Massage demain matin<span>Spa · Victoria</span></div><div class="st as" id="f5s">Assigné · Spa</div></div>
+        </div>
+        <div class="pan" style="left:240px;top:574px;width:800px;height:406px">
+          <h2>Équipes <em>Aujourd’hui</em></h2>
+          <div class="tm">
+            <div>Réception<span>4 tâches</span><i><b id="g1"></b></i></div>
+            <div>Room service<span>3 tâches</span><i><b id="g2"></b></i></div>
+            <div>Spa<span>2 tâches</span><i><b id="g3"></b></i></div>
+            <div>Restaurant<span>3 tâches</span><i><b id="g4"></b></i></div>
+          </div>
+          <h2 style="margin-top:26px">Prochaines arrivées</h2>
+          <div class="op"><div>M. et Mme Laurent<span>Suite 601 · 15:00 · préférences transmises</span></div><div class="st go">Préparation</div></div>
+          <div class="op"><div>Mme Okafor<span>Ch. 318 · 17:30 · demande en anglais</span></div><div class="st go">Préparation</div></div>
+        </div>
+        <div class="pan" style="left:1060px;top:574px;width:520px;height:406px">
+          <h2>Opportunités <em>Proposées par Lobbii</em></h2>
+          <div class="op"><div>Late check-out<span>Ch. 205</span></div><div class="st ok">Accepté</div></div>
+          <div class="op"><div>Dîner en terrasse<span>Ch. 507</span></div><div class="st ok">Réservé</div></div>
+          <div class="op"><div>Massage signature<span>Ch. 112</span></div><div class="st ok" id="op3">Réservé</div></div>
+          <div class="op"><div>Surclassement suite<span>Ch. 601</span></div><div class="st go">Proposé</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="layer" style="background:linear-gradient(0deg,rgba(11,11,13,.92) 0%,rgba(11,11,13,.6) 15%,rgba(11,11,13,0) 32%)"></div>
+    <div class="cap" id="c3" style="top:1640px;font-size:60px;letter-spacing:.01em"><span id="w1">Centralisez.</span> <span id="w2">Anticipez.</span> <span id="w3" style="color:var(--gold2)">Pilotez.</span></div>
+  </div>
+
+  <!-- ============ S4 · FACADE 23:59 ============ -->
+  <div class="scene" id="s4">
+    <svg width="1080" height="1920" id="facade">
+      <defs><linearGradient id="fsky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#07080b"/><stop offset=".7" stop-color="#161820"/><stop offset="1" stop-color="#3a3026"/></linearGradient></defs>
+      <rect width="1080" height="1920" fill="url(#fsky)"/>
+      <g id="bld"></g>
+      <rect x="0" y="1760" width="1080" height="160" fill="#060606"/>
+    </svg>
+    <div class="cap" id="c4" style="top:150px;font-size:66px">Votre hôtel<br><b>ne dort jamais.</b></div>
+  </div>
+
+  <!-- ============ S5 · SIGNATURE ============ -->
+  <div class="scene" id="s5" style="background:var(--cream)">
+    <div class="end" id="e0" style="top:820px;font:300 80px 'Inter Display';color:var(--gold)">Lobbii non plus.</div>
+    <div id="logo"><div class="word" id="word"></div><div class="lbar" id="lbar"></div></div>
+    <div class="end" id="e1" style="top:990px;font:300 44px/1.3 'Inter Display';color:var(--ink)">L’intelligence au service<br>de votre performance hôtelière.</div>
+    <div class="end" id="e2" style="top:1170px;font:500 24px Inter;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)">Alfred <span style="color:var(--gold)">•</span> Victoria <span style="color:var(--gold)">•</span> Plateforme</div>
+    <div class="end" id="e3" style="top:1450px"><div id="cta">Demandez votre démonstration <b>→</b></div></div>
+    <div class="end" id="e4" style="top:1610px;font:400 36px Inter;letter-spacing:.12em;color:var(--ink)">mylobbii.com</div>
+  </div>
+
+  <div class="chip" id="chip"></div>
+  <div id="bigclock"><span id="bc">03:12</span><small id="bcl">CHAMBRE 412</small></div>
+  <div id="vign"></div>
+  <canvas id="grain" width="1480" height="2320"></canvas>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const clamp=(x,a=0,b=1)=>Math.min(b,Math.max(a,x));
+const lerp=(a,b,t)=>a+(b-a)*t;
+const easeIO=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+const easeO=t=>1-Math.pow(1-t,3);
+const prog=(t,a,b)=>clamp((t-a)/(b-a));
+const win=(t,a,b,fi=.4,fo=.4)=>Math.min(easeIO(prog(t,a,a+fi)),1-easeIO(prog(t,b-fo,b)));
+function rnd(seed){let s=seed;return()=>{s=(s*16807)%2147483647;return(s-1)/2147483646;};}
+function ns(tag,attrs,parent){const e=document.createElementNS('http://www.w3.org/2000/svg',tag);for(const k in attrs)e.setAttribute(k,attrs[k]);parent&&parent.appendChild(e);return e;}
+const O=(el,o)=>{el.style.opacity=o;};
+const rise=(el,p,d=24)=>{el.style.opacity=p;el.style.transform=`translateY(${(1-p)*d}px)`;};
+
+/* ---------- builds ---------- */
+(function(){const r=rnd(9),g=$('stars');for(let i=0;i<60;i++) ns('circle',{cx:150+r()*780,cy:300+r()*520,r:.8+r()*1.6,fill:'#dfe6ef',opacity:.2+r()*.6,'data-p':r()*6.28},g);
+  const m=$('moonpath'),r2=rnd(4);for(let i=0;i<46;i++){const y=870+r2()*420,w=(y-860)*.35+20;ns('rect',{x:720-w/2+(r2()-.5)*w,y,width:8+r2()*30,height:2.5,fill:'#cfd8e6',opacity:0,'data-p':r2()*6.28},m);}})();
+(function(){const r=rnd(7),g=$('glitter');for(let i=0;i<70;i++) ns('rect',{x:380+(r()-.5)*420*(.4+r()),y:870+r()*200,width:10+r()*40,height:2.5,fill:'#FFF3D6',opacity:0,'data-p':r()*6.28},g);
+  const rl=$('rails');for(let x=190;x<930;x+=40) ns('rect',{x,y:1088,width:3,height:260,fill:'#2a2620'},rl);})();
+(function(){const g=$('wave');for(let i=0;i<56;i++) ns('rect',{x:(i-28)*14.5,y:-2,width:6,height:4,rx:3,fill:'#B8955A'},g);})();
+(function(){const g=$('bld'),r=rnd(3);
+  ns('rect',{x:140,y:420,width:800,height:1360,fill:'#15130f'},g);
+  ns('rect',{x:140,y:404,width:800,height:16,fill:'#B8955A',opacity:.75},g);
+  for(let row=0;row<20;row++) for(let c=0;c<12;c++){const x=172+c*64,y=460+row*64;
+    ns('rect',{x,y,width:36,height:44,fill:'#201d18'},g);
+    ns('rect',{x,y,width:36,height:44,fill:'#F2CF8E',opacity:0,'data-on':(r()*1.4).toFixed(3),'data-a':(r()<.5?0:.3+r()*.65).toFixed(2)},g);}
+  for(let c=0;c<=12;c++) ns('rect',{x:160+c*64,y:430,width:2,height:1330,fill:'#B8955A',opacity:.18},g);
+  ns('rect',{x:400,y:1700,width:280,height:60,fill:'#F7DFAE',opacity:.9},g);ns('rect',{x:370,y:1680,width:340,height:20,fill:'#B8955A'},g);})();
+(function(){const w=$('word');for(const ch of 'LOBBII'){const s=document.createElement('span');s.textContent=ch;w.appendChild(s);}})();
+const grainCanvas=$('grain'),gctx=grainCanvas.getContext('2d');const tiles=[];
+(function(){for(let k=0;k<6;k++){const c=document.createElement('canvas');c.width=c.height=256;const x=c.getContext('2d');const im=x.createImageData(256,256);const r=rnd(100+k);
+  for(let i=0;i<im.data.length;i+=4){const v=r()*255;im.data[i]=im.data[i+1]=im.data[i+2]=v;im.data[i+3]=255;}x.putImageData(im,0,0);tiles.push(c);}})();
+
+const MSG='Bonsoir, je n’arrive pas à dormir. Une tisane, ce serait possible ?';
+const G_EN='“Victoria, could you book me a taxi to the airport? Around nine?”', G_FR='Victoria, pourriez-vous me réserver un taxi pour l’aéroport ? Vers 9 h ?';
+const V_EN='“Of course. Your driver will be waiting for you at the entrance, at nine.”', V_FR='Bien sûr. Votre chauffeur vous attendra à l’entrée, à 9 h.';
+// voice cues (seconds) — must match audio.py
+const T_GUEST=9.2, D_GUEST=3.69, T_VIC=13.15, D_VIC=3.99;
+const CAM=[[17.4,800,520,.56],[18.3,800,500,.6],[19.0,670,330,1.14],[20.2,690,330,1.18],[20.9,1250,770,1.08],[22.8,1250,770,1.14]];
+
+function render(t){
+  /* chip (time / place) */
+  const chips=[[1.6,7.0,'CHAMBRE 412 · <b>03:12</b>'],[8.6,17.2,'SUITE 318 · <b>07:45</b>'],[18.0,22.6,'DIRECTION · <b>11:30</b>'],[23.0,25.2,'HÔTEL BELVÉDÈRE · <b>23:59</b>']];
+  let co=0,ch='';chips.forEach(([a,b,h])=>{const o=win(t,a,b,.4,.3);if(o>co){co=o;ch=h;}});
+  if($('chip').innerHTML!==ch&&ch) $('chip').innerHTML=ch; O($('chip'),co);
+  $('chip').style.color=(t>8&&t<17.2)?'rgba(27,24,20,.75)':'rgba(251,248,242,.75)';
+
+  /* big clock: 03:12 opening, then 07:45 transition */
+  const b1=win(t,.25,1.7,.6,.45), b2=win(t,7.0,8.5,.35,.45);
+  O($('bigclock'),Math.max(b1,b2));
+  if(t<4){$('bc').textContent='03:12';$('bcl').textContent='CHAMBRE 412';}
+  else{const tick=prog(t,7.05,7.8);const mins=Math.round(lerp(3*60+12,7*60+45,easeIO(tick)));$('bc').textContent=String(Math.floor(mins/60)).padStart(2,'0')+':'+String(mins%60).padStart(2,'0');$('bcl').textContent='LE LENDEMAIN MATIN';}
+  $('bigclock').style.color=t>7.6&&t<8.6?'#1b1814':'#FBF8F2';
+  $('bigclock').style.transform=`scale(${1+prog(t,0,1.8)*.04})`;
+
+  /* S0 black→ S1 */
+  O($('s0'),t<2?1:0);
+
+  /* ===== S1 night 1.2–7.4 ===== */
+  const o1=win(t,1.2,7.4,.7,.5); O($('s1'),o1);
+  if(o1>0){
+    const k=prog(t,1.2,7.4);
+    $('s1cam').style.transform=`scale(${1.08-k*.05})`;
+    const ph=easeO(prog(t,1.9,2.7));
+    $('phone').style.transform=`translateY(${(1-ph)*260}px) rotateX(${(1-ph)*10}deg) scale(${.96+k*.04})`;
+    O($('phone'),ph);
+    $('s1cam').style.filter=`blur(${ph*7}px) brightness(${1-ph*.35})`;
+    [...$('stars').children].forEach(e=>e.setAttribute('opacity',(.35+.35*Math.sin(t*2+(+e.dataset.p)*4)).toFixed(2)));
+    [...$('moonpath').children].forEach(e=>e.setAttribute('opacity',(Math.max(0,Math.sin(t*2.4+(+e.dataset.p)*3))*.7).toFixed(2)));
+    const f=$('field');
+    if(t>=2.5&&t<3.85){const n=Math.round(MSG.length*prog(t,2.5,3.75));f.innerHTML=MSG.slice(0,n).replace(/ /g,'&nbsp;')+'<span class="caret"></span>';f.scrollLeft=9999;}
+    else f.innerHTML='<span class="ph">Message</span>';
+    const show=(id,a)=>{const el=$(id);el.style.display=t<a?'none':'block';rise(el,easeO(prog(t,a,a+.25)),20);};
+    show('b1',3.9);
+    const ty=t>=4.15&&t<4.85;$('typ').style.display=ty?'flex':'none';
+    [...$('typ').children].forEach((d,i)=>d.style.transform=`translateY(${Math.sin(t*12-i*.9)*5}px)`);
+    $('wastatus').textContent=ty?'écrit…':'en ligne';
+    show('b2',4.85);
+    rise($('c1'),win(t,5.2,7.35,.4,.3),14);
+  }
+
+  /* ===== S2 morning 8.2–17.4 ===== */
+  const o2=win(t,8.2,17.4,.6,.5); O($('s2'),o2);
+  if(o2>0){
+    const k=prog(t,8.2,17.4);
+    $('s2cam').style.transform=`scale(${1.12-k*.08}) translateX(${lerp(-18,18,k)}px)`;
+    [...$('glitter').children].forEach(e=>e.setAttribute('opacity',(Math.max(0,Math.sin(t*3+(+e.dataset.p)*3))*.85).toFixed(2)));
+    $('curtL').setAttribute('transform',`translate(${Math.sin(t*.8)*6} 0)`);$('curtR').setAttribute('transform',`translate(${Math.sin(t*.7+1)*-6} 0)`);
+    rise($('vui'),easeO(prog(t,8.8,9.3)),40);
+    const g=t>=T_GUEST&&t<T_GUEST+D_GUEST, v=t>=T_VIC&&t<T_VIC+D_VIC;
+    const amp=g?.55*win(t,T_GUEST,T_GUEST+D_GUEST,.2,.2):v?win(t,T_VIC,T_VIC+D_VIC,.15,.25):.05;
+    [...$('wave').children].forEach((b,i)=>{const x=(i-28)/28,env=Math.exp(-x*x*3);
+      const h=4+amp*env*(26+44*Math.abs(Math.sin(t*(v?11:8)+i*.55)*Math.sin(t*3.1+i*.21)));
+      b.setAttribute('y',-h/2);b.setAttribute('height',h);b.setAttribute('fill',v?'#B8955A':'#8a8173');});
+    $('orb').style.transform=`scale(${1+(v?.08*Math.abs(Math.sin(t*9)):0)})`;
+    $('vstate').textContent=t<T_GUEST+D_GUEST?'À l’écoute':(t<T_VIC?'…':'Victoria répond');
+    const gn=Math.round(G_EN.length*prog(t,T_GUEST,T_GUEST+D_GUEST-.2)), vn=Math.round(V_EN.length*prog(t,T_VIC,T_VIC+D_VIC-.3));
+    let h=`<div class="g">${G_EN.slice(0,gn)}${t>T_GUEST+D_GUEST-.1?`<i>${G_FR}</i>`:''}</div>`;
+    if(t>=T_VIC) h+=`<div class="v">${V_EN.slice(0,vn)}${t>T_VIC+D_VIC-.2?`<i>${V_FR}</i>`:''}</div>`;
+    $('vtx').innerHTML=h;
+    rise($('c2'),win(t,9.6,17.3,.6,.3),16);
+  }
+
+  /* ===== S3 dashboard 17.2–23.0 ===== */
+  const o3=win(t,17.2,23.0,.45,.45); O($('s3'),o3);
+  if(o3>0){
+    let i=0;while(i<CAM.length-2&&t>CAM[i+1][0])i++;
+    const A=CAM[i],B=CAM[i+1],p=easeIO(prog(t,A[0],B[0]));
+    const cx=lerp(A[1],B[1],p),cy=lerp(A[2],B[2],p),s=lerp(A[3],B[3],p);
+    $('dcam').style.transform=`translate(${540-cx*s}px,${880-cy*s}px) scale(${s})`;
+    ['f1','f2','f3','f4','f5'].forEach((id,j)=>{const a=17.5+j*.3;const q=easeO(prog(t,a,a+.35));$(id).style.opacity=q;$(id).style.transform=`translateX(${(1-q)*40}px)`;});
+    [[ 'g1',.75],['g2',.6],['g3',.45],['g4',.7]].forEach(([id,w],j)=>{$(id).style.width=(w*100*easeO(prog(t,19.6+j*.12,20.4+j*.12)))+'%';});
+    ['w1','w2','w3'].forEach((id,j)=>{const a=18.3+j*1.15;rise($(id),easeO(prog(t,a,a+.45))*(1-easeIO(prog(t,22.6,23.0))),14);$(id).style.display='inline-block';});
+    O($('c3'),1);
+  }
+
+  /* ===== S4 facade 22.6–25.6 ===== */
+  const o4=win(t,22.6,25.6,.5,.5); O($('s4'),o4);
+  if(o4>0){
+    const k=prog(t,22.6,25.6);
+    $('facade').style.transform=`scale(${1.16-k*.1}) translateY(${k*30}px)`;
+    [...$('bld').querySelectorAll('rect[data-on]')].forEach(r=>{const on=easeO(prog(t,22.7+ +r.dataset.on,23.0+ +r.dataset.on));r.setAttribute('opacity',(on*r.dataset.a).toFixed(2));});
+    rise($('c4'),win(t,23.1,25.5,.5,.35),18);
+  }
+
+  /* ===== S5 signature 25.2–30 ===== */
+  const o5=easeIO(prog(t,25.2,25.7)); O($('s5'),o5);
+  if(o5>0){
+    rise($('e0'),win(t,25.6,27.2,.4,.35),18);
+    [...$('word').children].forEach((s,i)=>{const p=easeO(prog(t,27.1+i*.07,27.75+i*.07));s.style.opacity=p;s.style.transform=`translateY(${(1-p)*30}px)`;s.style.filter=`blur(${(1-p)*8}px)`;});
+    $('word').style.letterSpacing=lerp(.42,.32,easeO(prog(t,27.1,28.4)))+'em';
+    $('lbar').style.width=lerp(0,140,easeIO(prog(t,27.6,28.1)))+'px';
+    rise($('e1'),easeO(prog(t,27.7,28.3)),16);
+    rise($('e2'),easeO(prog(t,28.0,28.5)),10);
+    rise($('e3'),easeO(prog(t,28.2,28.7)),20);
+    rise($('e4'),easeO(prog(t,28.35,28.85)),10);
+  }
+
+  const fr=Math.floor(t*24),tile=tiles[fr%tiles.length];
+  gctx.clearRect(0,0,grainCanvas.width,grainCanvas.height);
+  const oy=(fr*97)%256,ox=(fr*53)%256;
+  for(let y=-oy;y<grainCanvas.height;y+=256) for(let x=-ox;x<grainCanvas.width;x+=256) gctx.drawImage(tile,x,y);
+  $('vign').style.opacity=t>25.4?.15:1;
+}
+window.render=render;
+if(!/render/.test(location.search)){const t0=performance.now();(function loop(){render(((performance.now()-t0)/1000)%30);requestAnimationFrame(loop);})();}
+</script>
+</body>
+</html>
