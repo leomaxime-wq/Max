@@ -8,7 +8,7 @@ LINES={
  "guest":("Victoria, peux-tu m'aider à organiser un massage demain ?",1.0),
  "vic":("Bien sûr. Je vais vous aider.",0.93),
  "vo3":("Pour vos équipes, tout est centralisé. Chaque demande. Chaque tâche. Chaque opportunité.",0.97),
- "vo4":("Une expérience plus fluide. Des équipes plus efficaces. De nouveaux revenus.",0.98),
+ "vo4":("Une expérience plus fluide. Des équipes plus efficaces. De nouveaux revenus.",1.08),
  "vo5":("Votre hôtel ne dort jamais. Lobbii non plus.",0.98),
 }
 d={}

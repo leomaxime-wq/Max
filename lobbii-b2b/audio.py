@@ -1,11 +1,16 @@
-# Synthesized score + sound design for the 35 s LOBBII B2B trailer -> out/soundtrack.wav
+# Synthesized score + sound design for the 30 s LOBBII B2B trailer -> out/soundtrack.wav
 import numpy as np, wave
-SR=48000; D=35.0; N=int(SR*D); t=np.arange(N)/SR
+# cue times below are written on the original 35 s timeline and mapped to the 30 s cut by M()
+KNOTS=[(0,0),(3.9,4.9),(9.4,11.0),(15.6,17.2),(21.4,25.4),(25.3,30.2),(30,35)]
+def M(old): return float(np.interp(old,[k[1] for k in KNOTS],[k[0] for k in KNOTS]))
+SR=48000; D=30.0; N=int(SR*D); t=np.arange(N)/SR
 rng=np.random.default_rng(1)
 L=np.zeros(N); R=np.zeros(N)
-def env(a,b,att=.05,rel=.3):
+def env(a,b,att=.05,rel=.3,raw=False):
+    if not raw: a,b=M(a),M(b)
     e=np.clip((t-a)/att,0,1)*np.clip((b-t)/rel,0,1); return e
-def add(sig,start,gain=1.0,pan=0.0):
+def add(sig,start,gain=1.0,pan=0.0,raw=False):
+    if not raw: start=M(start)
     i=int(start*SR); n=min(len(sig),N-i)
     L[i:i+n]+=sig[:n]*gain*(1-pan)/1; R[i:i+n]+=sig[:n]*gain*(1+pan)/1
 def hz(m): return 440*2**((m-69)/12)
@@ -44,10 +49,10 @@ def pluck(f,dur=.9):
     return (np.sin(2*np.pi*f*tt)+.3*np.sin(2*np.pi*2*f*tt)+.12*np.sin(2*np.pi*3.01*f*tt))*np.exp(-tt*5)
 arp=[72,76,79,84,79,76]
 bpm=110; beat=60/bpm; step=beat/2
-x=5.3; i=0
-while x<30.1:
-    g=.05 if x<11 else (.065 if x<17 else .085)
-    add(pluck(hz(arp[i%len(arp)]+(-3 if 17<=x<20.5 else 0))),x,g,pan=(-.4 if i%2 else .4))
+x=M(5.3); i=0
+while x<M(30.1):
+    g=.05 if x<M(11) else (.065 if x<M(17) else .085)
+    add(pluck(hz(arp[i%len(arp)]+(-3 if M(17)<=x<M(20.5) else 0))),x,g,pan=(-.4 if i%2 else .4),raw=True)
     x+=step; i+=1
 
 # --- pulse / kick from 11 s, hats from 17 s ---
@@ -56,11 +61,11 @@ def kick():
     return np.sin(2*np.pi*np.cumsum(f)/SR)*np.exp(-tt*7)
 def hat():
     n=rng.standard_normal(int(SR*.08)); n=np.diff(n,prepend=0); return n*np.exp(-np.arange(len(n))/SR*55)
-x=11.0; b=0
-while x<30.1:
-    if x>=11: add(kick(),x,.32 if x<17 else .42)
-    if x>=17: add(hat(),x+beat/2,.05,pan=.3)
-    if x>=20.5: add(hat(),x+beat*.75,.03,pan=-.3)
+x=M(11.0); b=0
+while x<M(30.1):
+    add(kick(),x,.32 if x<M(17) else .42,raw=True)
+    if x>=M(17): add(hat(),x+beat/2,.05,pan=.3,raw=True)
+    if x>=M(20.5): add(hat(),x+beat*.75,.03,pan=-.3,raw=True)
     x+=beat; b+=1
 
 # --- riser into reveal 21.5–24 ---
@@ -81,7 +86,7 @@ add(blip(1100,1470),19.6,.08)       # assigned to Spa
 add(blip(880,1175),22.35,.08)       # task moved
 add(blip(1320,1760),23.9,.09)       # opportunity booked
 def tick(): tt=np.arange(int(SR*.03))/SR; return np.sin(2*np.pi*3000*tt)*np.exp(-tt*200)
-for k in range(15): add(tick(),5.6+k*.085,.04)   # typing
+for k in range(13): add(tick(),M(5.6)+k*.085,.04,raw=True)   # typing
 
 # --- whoosh into Victoria + chime when she answers ---
 wh=rng.standard_normal(int(SR*1.2)); wh=lp(wh,.08); tt=np.arange(len(wh))/SR
@@ -107,7 +112,8 @@ add(blip(990,1320),33.5,.05)        # CTA
 
 # --- voices: Lobbii voice (narration + Victoria) and the guest ---
 import soundfile as sf
-VOX=[("vo1",0.7,1.0,0),("vo2",5.55,1.0,0),("guest",11.7,.9,-.12),("vic",15.0,1.05,.08),("vo3",18.2,1.0,0),("vo4",25.3,1.0,0),("vo5",30.35,1.05,0)]
+# voice start times on the final 30 s timeline
+VOX=[("vo1",0.5,1.0,0),("vo2",4.5,1.0,0),("guest",10.1,.9,-.12),("vic",13.4,1.05,.08),("vo3",16.0,1.0,0),("vo4",21.45,1.0,0),("vo5",25.5,1.05,0)]
 V=np.zeros(N)
 for name,st,g,_ in VOX:
     x,sr=sf.read(f"voice/proc/{name}.wav"); assert sr==SR
