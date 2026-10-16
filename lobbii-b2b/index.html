@@ -451,7 +451,7 @@ const grainCanvas=$('grain'),gctx=grainCanvas.getContext('2d');const tiles=[];
 
 const MSG='Bonsoir, puis-je réserver une table pour deux ?';
 const GUEST='« Victoria, peux-tu m’aider à organiser un massage demain ? »';
-const VIC='« Bien sûr, je vais vous aider. »';
+const VIC='« Bien sûr. Je vais vous aider. »';
 const CLOCK=['07:42','09:15','12:15','15:40','19:30','21:05','23:58','02:14'];
 // dashboard camera keyframes (dashboard coords): [time, cx, cy, scale]
 const CAM=[[17.0,800,560,.56],[18.0,800,520,.60],[18.6,910,395,.76],[20.5,910,395,.79],[21.0,570,795,1.42],[23.0,570,795,1.48],[23.5,1250,795,1.42],[25.4,1250,795,1.50]];
@@ -505,15 +505,15 @@ function render(t){
     [...$('glitter').children].forEach(e=>{e.setAttribute('opacity',Math.max(0,Math.sin(t*3+(+e.dataset.p)*3))*.85);});
     $('curtL').setAttribute('transform',`translate(${Math.sin(t*.8)*6} 0)`);$('curtR').setAttribute('transform',`translate(${Math.sin(t*.7+1)*-6} 0)`);
     rise($('vui'),easeO(prog(t,11.4,11.9)),40);
-    const g=t>=11.9&&t<14.0, v=t>=14.3&&t<16.0;
-    const amp=g?.55*win(t,11.9,14.0,.2,.2):v?1*win(t,14.3,16.0,.15,.25):.05;
+    const g=t>=11.7&&t<14.75, v=t>=15.0&&t<16.75;
+    const amp=g?.55*win(t,11.7,14.75,.2,.2):v?1*win(t,15.0,16.75,.15,.25):.05;
     [...$('wave').children].forEach((b,i)=>{const x=(i-28)/28,env=Math.exp(-x*x*3);
       const h=4+amp*env*(30+50*Math.abs(Math.sin(t*(v?11:8)+i*.55)*Math.sin(t*3.1+i*.21)));
       b.setAttribute('y',-h/2);b.setAttribute('height',h);b.setAttribute('fill',v?'#B8955A':'#8a8173');});
     $('orb').style.transform=`scale(${1+(v?.08*Math.abs(Math.sin(t*9)):0)})`;
-    $('vstate').textContent=t<14.0?'À l’écoute':(t<14.3?'…':'Victoria répond');
-    const gn=Math.round(GUEST.length*prog(t,11.9,13.8)), vn=Math.round(VIC.length*prog(t,14.3,15.4));
-    $('vtx').innerHTML=`<div class="g">${GUEST.slice(0,gn)}</div>`+(t>=14.3?`<div class="v" style="margin-top:12px">${VIC.slice(0,vn)}</div>`:'');
+    $('vstate').textContent=t<14.75?'À l’écoute':(t<15.0?'…':'Victoria répond');
+    const gn=Math.round(GUEST.length*prog(t,11.7,14.55)), vn=Math.round(VIC.length*prog(t,15.0,16.5));
+    $('vtx').innerHTML=`<div class="g">${GUEST.slice(0,gn)}</div>`+(t>=15.0?`<div class="v" style="margin-top:12px">${VIC.slice(0,vn)}</div>`:'');
     rise($('c3'),win(t,11.8,17.3,.6,.3),16);
   }
 
@@ -562,14 +562,14 @@ function render(t){
   /* ===== S6 Signature · 30.2–35 ===== */
   const o6=easeIO(prog(t,30.2,30.7)); O($('s6'),o6);
   if(o6>0){
-    rise($('e0'),win(t,30.4,32.1,.45,.35),18);
-    [...$('word').children].forEach((s,i)=>{const p=easeO(prog(t,32.0+i*.08,32.7+i*.08));s.style.opacity=p;s.style.transform=`translateY(${(1-p)*30}px)`;s.style.filter=`blur(${(1-p)*8}px)`;});
-    $('word').style.letterSpacing=lerp(.42,.32,easeO(prog(t,32.0,33.4)))+'em';
-    $('lbar').style.width=lerp(0,140,easeIO(prog(t,32.6,33.2)))+'px';
-    rise($('e1'),easeO(prog(t,32.8,33.5)),16);
-    rise($('e2'),easeO(prog(t,33.2,33.8)),10);
-    rise($('e3'),easeO(prog(t,33.5,34.1)),20);
-    rise($('e4'),easeO(prog(t,33.7,34.3)),10);
+    rise($('e0'),win(t,30.35,32.8,.45,.35),18);
+    [...$('word').children].forEach((s,i)=>{const p=easeO(prog(t,32.65+i*.07,33.3+i*.07));s.style.opacity=p;s.style.transform=`translateY(${(1-p)*30}px)`;s.style.filter=`blur(${(1-p)*8}px)`;});
+    $('word').style.letterSpacing=lerp(.42,.32,easeO(prog(t,32.65,34.0)))+'em';
+    $('lbar').style.width=lerp(0,140,easeIO(prog(t,33.1,33.6)))+'px';
+    rise($('e1'),easeO(prog(t,33.2,33.8)),16);
+    rise($('e2'),easeO(prog(t,33.5,34.0)),10);
+    rise($('e3'),easeO(prog(t,33.7,34.2)),20);
+    rise($('e4'),easeO(prog(t,33.85,34.35)),10);
   }
 
   const fr=Math.floor(t*24),tile=tiles[fr%tiles.length];
