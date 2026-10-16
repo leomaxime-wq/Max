@@ -285,7 +285,7 @@ function parasol(x,px,pz,day){const ap=P(px,2.6,pz),rim=P(px,2.12,pz),b=P(px,0,p
   if(!day)glow(x,ap.x,rim.y+ry,.6*s,AMB,.25)}
 function lounger(x,px,pz,day){const a=P(px-.32,.38,pz-.9),b=P(px+.32,.38,pz-.9),c=P(px+.32,.38,pz+.9),d=P(px-.32,.38,pz+.9),f=P(px-.32,0,pz-.9),g=P(px+.32,0,pz-.9);if(!a||!d)return;
   poly(x,[a,b,g,f],day?'#cfc6b6':'#6b4d36');poly(x,[a,b,c,d],day?'#fbf7ef':'#d9b892');
-  const h=P(px-.3,.75,pz+.85),h2=P(px+.3,.75,pz+.85),h3=P(px+.3,.38,pz+.55),h4=P(px-.3,.38,pz+.55);if(h)poly(x,[h4,h3,h2,h],day?'#f1ebdf':'#c9a57b')}
+  const h=P(px-.3,.75,pz+.85),h2=P(px+.3,.75,pz+.85),h3=P(px+.3,.38,pz+.55),h4=P(px-.3,.38,pz+.55);if(h&&h2&&h3&&h4)poly(x,[h4,h3,h2,h],day?'#f1ebdf':'#c9a57b')}
 
 // S2a — plans architecturaux
 function shPlans(x,p,lt,dur){
@@ -557,7 +557,7 @@ function shRooftop(x,p,lt){setCam(lerp(.6,-.6,esin(p)),1.55,lerp(0,1.1,p),.5);
   const rl=P(0,1.05,7.2);x.fillStyle='rgba(180,200,220,.06)';x.fillRect(0,rl.y,W,deck.y-rl.y);x.fillStyle='rgba(255,230,200,.5)';x.fillRect(0,rl.y,W,Math.max(1,.02*rl.s));
   const items=[];const r2=R(29);
   for(const z of[2.6,4.2,5.8])for(const xx of[-3.6,-1.2,1.2,3.6]){const px=xx+(r2()-.5)*.8;items.push({z,d:x=>{const t=P(px,.42,z),b=P(px,0,z);if(!t)return;
-    const sa=P(px-.9,.4,z+.4),sb=P(px+.9,.75,z+.4);if(sa){x.fillStyle='#1d1612';x.fillRect(sa.x,sb.y,sb.x-sa.x,sa.y-sb.y+(.4*sa.s));}
+    const sa=P(px-.9,.4,z+.4),sb=P(px+.9,.75,z+.4);if(sa&&sb){x.fillStyle="#1d1612";x.fillRect(sa.x,sb.y,sb.x-sa.x,sa.y-sb.y+(.4*sa.s));}
     ell(x,t.x,t.y,.32*t.s,.06*t.s,'#2a211b');glow(x,t.x,t.y-.03*t.s,.6*t.s,AMB,.5);glow(x,t.x,t.y-.03*t.s,.04*t.s,WARM,1)}});
     if(r2()<.6&&z>3){const qx=px+.7,qz=z-.3,sw=r2()*6;items.push({z:qz,d:x=>person(x,qx,qz,{pose:'stand',rim:AMB,rimSide:-1,sway:Math.sin(T*.8+sw)*.03,hair:sw>3?'long':0,arms:[{side:1,hx:qx+.25,hy:1.25,hz:qz-.15,glass:true}]})})}}
   for(const z of[3.4,6.2])items.push({z,d:x=>{let pr=null;for(let i=0;i<=40;i++){const xx=-7+14*i/40,yy=2.9-.35*Math.sin(Math.PI*((i%8)/8)),q=P(xx,yy,z);if(!q)return;if(pr){x.strokeStyle='rgba(0,0,0,.6)';x.lineWidth=1;x.beginPath();x.moveTo(pr.x,pr.y);x.lineTo(q.x,q.y);x.stroke()}pr=q;glow(x,q.x,q.y,.3*q.s,AMB,.55);glow(x,q.x,q.y,.035*q.s,WHITE,1)}}});
