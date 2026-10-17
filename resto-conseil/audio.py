@@ -2,6 +2,8 @@
 # Musique électronique cinématographique : nappes, basse profonde, pulsation, montée, ralentissement final
 # + design sonore : salle, verres, vagues, crayon, porcelaine, cuisine, murmure de salle.
 import numpy as np, wave, os
+PHOTO=os.environ.get('PHOTO')=='1'   # version photographique : pas de bruitages de cuisine / verres / vagues
+OUT=os.environ.get('OUT','out')
 SR=48000; D=55.0; N=int(SR*D); t=np.arange(N)/SR
 rng=np.random.default_rng(7)
 L=np.zeros(N); R=np.zeros(N)
@@ -95,7 +97,7 @@ def boom(d=4,g=1):
     tt=np.arange(int(SR*d))/SR; f=34+40*np.exp(-tt*5)
     return np.sin(2*np.pi*np.cumsum(f)/SR)*np.exp(-tt*1.1)*g
 add(boom(),8.0,.35); add(boom(),18.0,.35); add(boom(),30.0,.42); add(boom(5),43.0,.55); add(boom(6),49.0,.6)
-for c in (10,12,14,16,20,22,24,26,28,31.5,33,34.5,36,37.5,39,41):   # souffles de coupe
+for c in ((10,12,14,22,25.5,27,31,34.3,38.6) if PHOTO else (10,12,14,16,20,22,24,26,28,31.5,33,34.5,36,37.5,39,41)):   # souffles de coupe
     w=bandpass(noise(.4),600,7000); tt=np.arange(len(w))/SR; add(w*np.sin(np.pi*tt/.4)**2,c-.2,.03,pan=.3*np.sin(c))
 
 # ---------- final : ralentissement, piano, cloches ----------
@@ -115,22 +117,22 @@ L+=room*.05*env(0,8.4,1,.6); R+=np.roll(room,700)*.05*env(0,8.4,1,.6)
 def clink(f=2900,d=1.6):
     tt=np.arange(int(SR*d))/SR
     return sum(a*np.sin(2*np.pi*f*r*tt)*np.exp(-tt*dk) for r,a,dk in ((1,1,4),(1.51,.6,5),(2.43,.35,7),(3.1,.2,9)))*np.minimum(1,tt*2000)
-add(clink(3100),1.3,.05,pan=.4); add(clink(2600),2.4,.035,pan=-.3)
+if not PHOTO: add(clink(3100),1.3,.05,pan=.4); add(clink(2600),2.4,.035,pan=-.3)
 waves=lowpass(noise(3.4),900); tt=np.arange(len(waves))/SR; waves*=(.5+.5*np.sin(2*np.pi*tt/2.6-1.5))**2
-add(waves/np.abs(waves).max(),5.2,.12)
-for k in range(10):                                   # crayon sur papier (plans)
+if not PHOTO: add(waves/np.abs(waves).max(),5.2,.12)
+for k in range(0 if PHOTO else 10):                   # crayon sur papier (plans)
     s=bandpass(noise(.12+.1*rng.random()),2500,9000); s*=np.hanning(len(s)); add(s,8.25+k*.17,.05,pan=.2)
-p2=bandpass(noise(.5),300,4000); add(p2*np.hanning(len(p2)),12.05,.06)          # carte posée
-for st in (14.6,14.85,15.1,15.6,16.2,16.5,16.8,17.1,17.4):                     # porcelaine / pince
+p2=bandpass(noise(.5),300,4000); 0 if PHOTO else add(p2*np.hanning(len(p2)),12.05,.06)          # carte posée
+for st in () if PHOTO else (14.6,14.85,15.1,15.6,16.2,16.5,16.8,17.1,17.4):                     # porcelaine / pince
     add(clink(4200+rng.random()*900,.35),st,.02,pan=.15)
 siz=bandpass(noise(4.2),2500,12000); siz*=.6+.4*np.abs(np.sin(np.arange(len(siz))/SR*9))
-add(siz*np.minimum(1,np.arange(len(siz))/SR*8)*np.clip((4.2-np.arange(len(siz))/SR)/.4,0,1),18.0,.05,pan=-.15)   # cuisine
-for st in (18.6,19.5,20.8,21.4): add(clink(1700+rng.random()*400,.5),st,.03,pan=.3)                           # casseroles
+0 if PHOTO else add(siz*np.minimum(1,np.arange(len(siz))/SR*8)*np.clip((4.2-np.arange(len(siz))/SR)/.4,0,1),18.0,.05,pan=-.15)   # cuisine
+for st in (() if PHOTO else (18.6,19.5,20.8,21.4)): add(clink(1700+rng.random()*400,.5),st,.03,pan=.3)                           # casseroles
 mur=bandpass(noise(10),250,1600); m_e=.6+.4*lowpass(rng.standard_normal(len(mur)),3)/0.3
 mur*=np.clip(m_e,0,1.4); mur/=np.abs(mur).max()
-add(mur*np.minimum(1,np.arange(len(mur))/SR)*np.clip((10-np.arange(len(mur))/SR)/1,0,1),22.0,.06)            # salle animée
-add(mur[:int(SR*6)]*np.hanning(int(SR*6)),36.5,.04)
-add(clink(3000,2.2),42.55,.16); add(clink(3350,2.0),42.565,.12,pan=.2)       # les flûtes trinquent
+0 if PHOTO else add(mur*np.minimum(1,np.arange(len(mur))/SR)*np.clip((10-np.arange(len(mur))/SR)/1,0,1),22.0,.06)            # salle animée
+0 if PHOTO else add(mur[:int(SR*6)]*np.hanning(int(SR*6)),36.5,.04)
+if not PHOTO: add(clink(3000,2.2),42.55,.16); add(clink(3350,2.0),42.565,.12,pan=.2)       # les flûtes trinquent
 
 # ---------- mixage ----------
 def reverb(x,secs=2.6,seed=3,damp=2.6):
@@ -143,14 +145,14 @@ L=L+.25*reverb(L,seed=3); R=R+.25*reverb(R,seed=4)
 L,R=lowpass(L,14000,1),lowpass(R,14000,1)
 fade=np.clip((D-t)/2.0,0,1)**1.5*np.interp(t,[0,8,18,30,43,55],[.5,.65,.82,1,.9,.9]); L*=fade; R*=fade
 mx=max(np.abs(L).max(),np.abs(R).max()); L=np.tanh(L/mx*1.3)/np.tanh(1.3)*.9; R=np.tanh(R/mx*1.3)/np.tanh(1.3)*.9
-os.makedirs('out',exist_ok=True)
+os.makedirs(OUT,exist_ok=True)
 pcm=(np.stack([L,R],1)*32767).astype('<i2')
-with wave.open('out/soundtrack_raw.wav','wb') as f:
+with wave.open(f'{OUT}/soundtrack_raw.wav','wb') as f:
     f.setnchannels(2); f.setsampwidth(2); f.setframerate(SR); f.writeframes(pcm.tobytes())
 # normalisation -14 LUFS en deux passes, mode linéaire (préserve le crescendo)
 import subprocess, json
-m=subprocess.run(['ffmpeg','-hide_banner','-i','out/soundtrack_raw.wav','-af','loudnorm=I=-14:TP=-1.5:LRA=20:print_format=json','-f','null','-'],capture_output=True,text=True).stderr
+m=subprocess.run(['ffmpeg','-hide_banner','-i',f'{OUT}/soundtrack_raw.wav','-af','loudnorm=I=-14:TP=-1.5:LRA=20:print_format=json','-f','null','-'],capture_output=True,text=True).stderr
 j=json.loads(m[m.rindex('{'):m.rindex('}')+1])
 af=f"loudnorm=I=-14:TP=-1.5:LRA=20:linear=true:measured_I={j['input_i']}:measured_TP={j['input_tp']}:measured_LRA={j['input_lra']}:measured_thresh={j['input_thresh']}:offset={j['target_offset']}"
-subprocess.run(['ffmpeg','-y','-loglevel','error','-i','out/soundtrack_raw.wav','-af',af,'-ar','48000','out/soundtrack.wav'],check=True)
+subprocess.run(['ffmpeg','-y','-loglevel','error','-i',f'{OUT}/soundtrack_raw.wav','-af',af,'-ar','48000',f'{OUT}/soundtrack.wav'],check=True)
 print('ok')

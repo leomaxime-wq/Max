@@ -71,3 +71,33 @@ Consignes communes à tous les plans : *cinematic 4K, photorealistic, anamorphic
 | 21 | 41–43,6 s | Close-up of two champagne flutes clinking against the setting sun |
 | 22 | 43–49 s | Crane-out revealing a grand restaurant with arched windows and chandeliers, lively and warm |
 | 23 | 49–55 s | Black background, logo, signature |
+
+---
+
+# Version professionnelle « plaquette » (`photo/`)
+
+Film de 55 s monté **uniquement à partir des éléments fournis par RESTO CONSEIL** : pages de la plaquette, photos, logo RC Consulting et logo Accor. Aucune image n'est générée.
+
+| Fichier | Format |
+|---|---|
+| `photo/RESTO_CONSEIL_PRO_55s_9x16.mp4` | 1080×1920 · Reels |
+| `photo/RESTO_CONSEIL_PRO_55s_4x5.mp4` | 1080×1350 · LinkedIn |
+| `photo/RESTO_CONSEIL_PRO_55s_16x9.mp4` | 1920×1080 · site |
+
+Recalcul : `PHOTO=1 OUT=photo/out python3 audio.py`, puis `node render.mjs --page photo/index.html --f 916 --out photo/out` (idem 45 et 169), puis assemblage ffmpeg comme ci-dessus.
+
+| Temps | Contenu | Source |
+|---|---|---|
+| 0–8 s | Lounge, puis resort dans le désert. *Chaque lieu raconte une histoire. / Chaque concept commence par une vision.* | Photos de la plaquette |
+| 8–14 s | Détails des deux lieux. IMAGINER. CRÉER. DIFFÉRENCIER. | Photos de la plaquette |
+| 14–18 s | « Agence de Conseil Stratégique & Créative, spécialisée dans l'Hospitality Premium & Lifestyle » | Plaquette, page d'accueil |
+| 18–22 s | Maxime Léonard, fondateur (en 16:9, mise en page de la plaquette : texte à gauche, portrait à droite) | Plaquette, page fondateur |
+| 22–25,5 s | Parcours : L'Arpège · Lucas Carton · Le Divellec, 25 ans de haute gastronomie, chef exécutif à New York et à Shanghai | Plaquette, page fondateur |
+| 25,5–27 s | RC Consulting · NOS EXPERTISES | Plaquette |
+| 27–31 s | STRATÉGIE. EXPERTISE. EXÉCUTION. et la chaîne de valeur (formation des équipes retirée) | Plaquette, page 3 |
+| 31–34,3 s | Varsovie, Budapest, Dubaï, Bruges, Luxembourg, Casablanca, Marrakech, Miami. DÉVELOPPER LES CONCEPTS. | Plaquette, page fondateur |
+| 34,3–43 s | Resort et lounge. SUBLIMER L'EXPÉRIENCE. / OPTIMISER LA PERFORMANCE. avec « image, excellence et rentabilité » | Photos et page 3 |
+| 43–47,6 s | Projets prestige : Roland-Garros, Grand Prix de l'Arc de Triomphe, Six Senses Crans Montana, Parker Dubai, logo Accor | Plaquette, logo fourni (références autorisées) |
+| 49–55 s | Logo RC Consulting officiel sur le brun de la charte, RESTO CONSEIL, signature, www.resto-conseil.com | Logo de la plaquette |
+
+Ni la formation ni le financement ne sont mentionnés.

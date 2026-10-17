@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RESTO CONSEIL Film Pro</title>
+<style>
+  @font-face{font-family:Cormorant;src:url(../fonts/cormorant-normal.woff2) format('woff2');font-weight:300 700;font-style:normal}
+  @font-face{font-family:Cormorant;src:url(../fonts/cormorant-italic.woff2) format('woff2');font-weight:300 700;font-style:italic}
+  html,body{margin:0;height:100%;background:#000;overflow:hidden}
+  canvas{display:block}
+  body.preview{display:flex;align-items:center;justify-content:center}
+  body.preview canvas{max-width:100vw;max-height:100vh;width:auto;height:auto}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+/* RESTO CONSEIL — film de marque 55 s, version professionnelle photographique.
+   Uniquement les photos, le logo et les textes fournis par RESTO CONSEIL (assets/).
+   ?f=916 | 45 | 169   ?s=2   ?render                                           */
+const Q=new URLSearchParams(location.search);
+const FMT=Q.get('f')||'169', SC=+(Q.get('s')||1), RENDER=Q.has('render');
+const W={916:1080,45:1080,169:1920}[FMT], H={916:1920,45:1350,169:1080}[FMT];
+const WIDE=W>H*1.5,PORT=H>W*1.3, U=Math.min(W,H)/1080, DUR=55;
+const cv=document.getElementById('c');cv.width=W*SC;cv.height=H*SC;const X=cv.getContext('2d');
+const mkc=(w,h)=>{const c=document.createElement('canvas');c.width=w;c.height=h;return c};
+const BC=mkc(W*SC,H*SC),B=BC.getContext('2d');
+
+const cl=(v,a=0,b=1)=>Math.max(a,Math.min(b,v)), lerp=(a,b,k)=>a+(b-a)*k;
+const ss=(a,b,v)=>{const k=cl((v-a)/(b-a));return k*k*(3-2*k)};
+const eio=k=>(k=cl(k),k<.5?4*k*k*k:1-Math.pow(-2*k+2,3)/2), eo=k=>1-Math.pow(1-cl(k),3);
+function R(seed){let s=seed|0;return()=>{s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const rgba=(c,a)=>`rgba(${c[0]},${c[1]},${c[2]},${a})`;
+function lg(x,x0,y0,x1,y1,st){const g=x.createLinearGradient(x0,y0,x1,y1);for(const[o,c]of st)g.addColorStop(cl(o),c);return g}
+function rg(x,cx,cy,r0,r1,st){const g=x.createRadialGradient(cx,cy,r0,cx,cy,r1);for(const[o,c]of st)g.addColorStop(cl(o),c);return g}
+
+/* palette RC Consulting (relevée sur les visuels fournis) */
+const BROWN='#582d1e', CREAM=[226,201,167], PAPER='#ebe9e5', INK='#16110d', GOLD=[201,162,106], WARM=[255,206,146];
+
+/* ---------- assets ---------- */
+const IMG={};const load=(k,src)=>new Promise(r=>{const i=new Image();i.onload=()=>{IMG[k]=i;r()};i.src=src});
+const ASSETS=Promise.all([load('lounge','assets/lounge.jpg'),load('desert','assets/desert.jpg'),load('portrait','assets/portrait.jpg'),
+  load('logoC','assets/logo_cream.png'),load('logoI','assets/logo_ink.png'),load('accor','assets/accor.svg')]);
+let GRAIN,PAPERT;
+function initTex(){GRAIN=[0,1,2,3].map(k=>{const c=mkc(256,256),g=c.getContext('2d'),id=g.createImageData(256,256),r=R(100+k);
+    for(let i=0;i<id.data.length;i+=4){const v=r()*255;id.data[i]=id.data[i+1]=id.data[i+2]=v;id.data[i+3]=255}g.putImageData(id,0,0);return c});
+  PAPERT=mkc(512,512);const g=PAPERT.getContext('2d'),r=R(5);g.fillStyle=PAPER;g.fillRect(0,0,512,512);
+  for(let i=0;i<26000;i++){g.fillStyle=r()<.5?'rgba(0,0,0,.035)':'rgba(255,255,255,.08)';g.fillRect(r()*512,r()*512,1+r()*2,1+r()*2)}}
+
+/* ---------- photo avec mouvement de caméra (Ken Burns) ----------
+   f0/f1 : point visé (0..1 dans la photo), z0/z1 : zoom (1 = photo entière en "cover").
+   Si la photo doit être trop agrandie pour remplir le cadre (désert en 9:16), elle est
+   posée en fenêtre sur un fond flou de la même photo : jamais de pixellisation.            */
+function photo(x,key,p,o){const im=IMG[key],iw=im.width,ih=im.height,e=o.ease===false?p:eio(p);
+  const cover=Math.max(W/iw,H/ih),maxUp=o.maxUp||2.05;
+  if(cover>maxUp){x.save();x.filter=`blur(${28*U}px) brightness(.55)`;const s=cover*1.1;x.drawImage(im,W/2-iw*s/2,H/2-ih*s/2,iw*s,ih*s);x.restore();
+    const sf=Math.min(maxUp,H*.55/ih),dw=Math.min(W*.9,iw*sf),dh=ih*sf,k=lerp(o.z0,o.z1,e)*sf;
+    const cy=H*(o.frameY||.42);x.save();x.shadowColor='rgba(0,0,0,.6)';x.shadowBlur=60*U;x.fillStyle='#000';x.fillRect(W/2-dw/2,cy-dh/2,dw,dh);x.restore();
+    x.save();x.beginPath();x.rect(W/2-dw/2,cy-dh/2,dw,dh);x.clip();const fx=lerp(o.f0[0],o.f1[0],e);
+    const iwk=iw*k,ihk=ih*k,dx=cl(W/2-iwk*fx,W/2+dw/2-iwk,W/2-dw/2);x.drawImage(im,dx,cy-ihk/2,iwk,ihk);x.restore();
+    x.strokeStyle=rgba(CREAM,.35);x.lineWidth=U;x.strokeRect(W/2-dw/2-10*U,cy-dh/2-10*U,dw+20*U,dh+20*U);grade(x,o);return}
+  const s=cover*lerp(o.z0,o.z1,e),fx=lerp(o.f0[0],o.f1[0],e),fy=lerp(o.f0[1],o.f1[1],e);
+  let dx=W/2-fx*iw*s,dy=H/2-fy*ih*s;dx=cl(dx,W-iw*s,0);dy=cl(dy,H-ih*s,0);
+  x.imageSmoothingQuality='high';x.drawImage(im,dx,dy,iw*s,ih*s);grade(x,o)}
+function grade(x,o){ // étalonnage : chaud, contrasté, noirs profonds
+  x.save();x.globalCompositeOperation='soft-light';x.fillStyle=lg(x,0,0,W,H,[[0,'rgba(255,190,120,.45)'],[1,'rgba(40,20,10,.5)']]);x.fillRect(0,0,W,H);
+  x.globalCompositeOperation='multiply';x.fillStyle=`rgba(${o.tint||'255,236,214'},1)`;x.fillRect(0,0,W,H);x.restore()}
+
+/* ---------- cartons typographiques (charte RC) ---------- */
+function paperBG(x){x.fillStyle=x.createPattern(PAPERT,'repeat');x.fillRect(0,0,W,H);x.fillStyle=rg(x,W/2,H*.45,0,Math.max(W,H)*.8,[[0,'rgba(255,255,255,.25)'],[1,'rgba(0,0,0,.12)']]);x.fillRect(0,0,W,H)}
+function brownBG(x){x.fillStyle=BROWN;x.fillRect(0,0,W,H);x.fillStyle=rg(x,W*.5,H*.4,0,Math.max(W,H)*.8,[[0,'rgba(255,190,130,.12)'],[1,'rgba(0,0,0,.35)']]);x.fillRect(0,0,W,H)}
+const GUT=W*(PORT?.09:.08);
+function txt(x,s,px,py,o){x.save();const al=o.al??1;if(al<=0){x.restore();return}
+  x.font=o.font;x.letterSpacing=(o.ls||0)+'px';x.textAlign=o.align||'center';x.textBaseline='middle';
+  if(o.blur)x.filter=`blur(${o.blur}px)`;x.fillStyle=o.col.replace('A',al);x.fillText(s,px+((o.align||'center')==='center'?(o.ls||0)/2:0),py);x.restore()}
+function fit(x,s,font,size,ls,maxW){let z=size;x.font=font.replace('S',z);x.letterSpacing=ls*z+'px';while(x.measureText(s).width>maxW&&z>8){z*=.96;x.font=font.replace('S',z);x.letterSpacing=ls*z+'px'}return z}
+function wrap(x,s,maxW){const w=s.split(' '),L=[];let c='';for(const q of w){const t=c?c+' '+q:q;if(x.measureText(t).width>maxW&&c){L.push(c);c=q}else c=t}if(c)L.push(c);return L}
+function rule(x,cx,y,w,al,col=GOLD){x.fillStyle=rgba(col,al);x.fillRect(cx-w/2,y,w,Math.max(1,1.4*U))}
+const rev=(t,a,d=.8)=>ss(a,a+d,t);
+
+// carton : positionnement (texte du site)
+function cardAgency(x,p,lt){paperBG(x);const cy=H*.47,mw=W-2*GUT;
+  const lo=IMG.logoI,lw=U*(PORT?220:170),lh=lw*lo.height/lo.width;x.globalAlpha=.9*rev(lt,.1,1);x.drawImage(lo,W/2-lw/2,cy-lh-U*(PORT?250:170),lw,lh);x.globalAlpha=1;
+  let z=fit(x,'Agence de Conseil','300 Spx Cormorant',U*(PORT?96:92),0,mw);
+  const l1=['Agence de Conseil','Stratégique & Créative'];l1.forEach((s,i)=>{const a=rev(lt,.35+i*.25);txt(x,s,W/2,cy-z*.55+i*z*1.05+(1-eo(a))*14*U,{font:`300 ${z}px Cormorant`,col:'rgba(22,17,13,A)',al:a,blur:(1-a)*6*U})});
+  rule(x,W/2,cy+z*1.35,U*70*eo(rev(lt,1,1)),rev(lt,1,1));
+  const s2=U*(PORT?26:22);x.font=`500 ${s2}px Inter`;x.letterSpacing=s2*.3+'px';const L=wrap(x,'SPÉCIALISÉE DANS L’HOSPITALITY PREMIUM & LIFESTYLE',mw);
+  L.forEach((s,i)=>txt(x,s,W/2,cy+z*1.8+i*s2*1.8,{font:`500 ${s2}px Inter`,ls:s2*.3,col:'rgba(88,45,30,A)',al:rev(lt,1.3+i*.15)}))}
+// plaquette, page fondateur : texte sur papier à gauche, portrait à droite
+function founderSplit(x,p,lt){paperBG(x);const im=IMG.portrait,ph=H,pw=im.width*H/im.height,k=lerp(1.0,1.06,eio(p));
+  x.save();x.beginPath();x.rect(W-pw,0,pw,H);x.clip();x.drawImage(im,W-pw-(pw*k-pw)/2,-(ph*k-ph)*.2,pw*k,ph*k);grade(x,{tint:'255,232,215'});x.restore();
+  const x0=GUT,mw=W-pw-GUT*2;txt(x,'MAXIME LÉONARD',x0,H*.3,{font:`400 ${U*62}px Inter`,ls:U*6,col:'rgba(22,17,13,A)',al:rev(lt,.1),align:'left'});
+  x.fillStyle=`rgba(201,162,106,${rev(lt,.4)})`;x.fillRect(x0,H*.3+U*52,U*60*eo(rev(lt,.4)),1.5*U);
+  txt(x,'FONDATEUR · RESTO CONSEIL',x0,H*.3+U*90,{font:`500 ${U*20}px Inter`,ls:U*6,col:'rgba(88,45,30,A)',al:rev(lt,.5),align:'left'});
+  const L=['Plus de 25 ans d’expertise en haute gastronomie','et hospitality d’exception.','Chef exécutif à New York et à Shanghai.','Fondateur de RC Conseil depuis 2015.'];
+  L.forEach((l,i)=>txt(x,l,x0,H*.3+U*175+i*U*66+(i>1?U*22:0)+(i>2?U*22:0),{font:`italic 300 ${U*50}px Cormorant`,col:'rgba(22,17,13,A)',al:rev(lt,.6+i*.25,.6),align:'left'}))}
+// carton : fondateur (après le portrait)
+function cardFounder(x,p,lt){brownBG(x);const cy=H*.44,mw=W-2*GUT;
+  txt(x,'PARCOURS',W/2,cy-U*(PORT?300:230),{font:`500 ${U*20}px Inter`,ls:U*7,col:`rgba(${CREAM},A)`,al:rev(lt,.1)});
+  const names=['L’Arpège','Lucas Carton','Le Divellec'];const z=fit(x,'Lucas Carton','300 Spx Cormorant',U*(PORT?92:84),0,mw);
+  if(PORT)names.forEach((s,i)=>txt(x,s,W/2,cy-z*1.1+i*z*1.1,{font:`italic 300 ${z}px Cormorant`,col:'rgba(250,244,232,A)',al:rev(lt,.3+i*.3),blur:(1-rev(lt,.3+i*.3))*6*U}));
+  else{const s=names.join('  ·  '),zz=fit(x,s,'italic 300 Spx Cormorant',U*84,0,mw);txt(x,s,W/2,cy-z*.3,{font:`italic 300 ${zz}px Cormorant`,col:'rgba(250,244,232,A)',al:rev(lt,.3),blur:(1-rev(lt,.3))*6*U})}
+  const y2=cy+(PORT?z*2.3:z*.9);rule(x,W/2,y2-U*14,U*60*eo(rev(lt,1.1)),rev(lt,1.1),CREAM);
+  const s2=U*(PORT?26:22);[['25 ANS DE HAUTE GASTRONOMIE','ET D’HOSPITALITY D’EXCEPTION'],['CHEF EXÉCUTIF À NEW YORK','ET À SHANGHAI']].flat().forEach((s,i)=>
+    txt(x,s,W/2,y2+U*30+i*s2*1.9+(i>1?s2*1.4:0),{font:`500 ${s2}px Inter`,ls:s2*.28,col:`rgba(${CREAM},A)`,al:rev(lt,1.3+i*.18)}))}
+// carton : NOS EXPERTISES (reprise de la plaquette)
+function cardExpertises(x,p,lt){brownBG(x);const lo=IMG.logoC,lw=U*(PORT?380:330),lh=lw*lo.height/lo.width,cy=H*.42,a=rev(lt,.05,.9);
+  x.save();x.globalAlpha=a;x.filter=`blur(${((1-a)*8*U).toFixed(2)}px)`;x.drawImage(lo,W/2-lw/2,cy-lh/2,lw,lh);x.restore();
+  const z=fit(x,'NOS EXPERTISES','400 Spx Inter',U*(PORT?50:46),.18,W-2*GUT);txt(x,'NOS EXPERTISES',W/2,cy+lh/2+U*70,{font:`400 ${z}px Inter`,ls:z*.18,col:'rgba(250,244,232,A)',al:rev(lt,.6)})}
+// carton : chaîne de valeur
+function cardValue(x,p,lt){paperBG(x);const mw=W-2*GUT,top=H*(PORT?.22:.18);
+  const words=['STRATÉGIE.','EXPERTISE.','EXÉCUTION.'];const z=U*(PORT?64:58);x.font=`400 ${z}px Cormorant`;x.letterSpacing=z*.14+'px';
+  const tot=words.map(w=>x.measureText(w).width).reduce((a,b)=>a+b)+z*.5*2,one=tot<=mw;let px=W/2-tot/2;
+  words.forEach((w,i)=>{const ww=x.measureText(w).width,a=rev(lt,.05+i*.3);x.save();
+    txt(x,w,one?px+ww/2:W/2,one?top:top+i*z*1.1,{font:`400 ${z}px Cormorant`,ls:z*.14,col:'rgba(22,17,13,A)',al:a,blur:(1-a)*6*U});x.restore();px+=ww+z*.5});
+  const y0=(one?top:top+2*z*1.1)+z*1.2;rule(x,W/2,y0,U*70*eo(rev(lt,.9)),rev(lt,.9));
+  txt(x,'NOUS INTERVENONS SUR L’ENSEMBLE DE LA CHAÎNE DE VALEUR',W/2,y0+U*48,{font:`500 ${U*(PORT?17:16)}px Inter`,ls:U*4,col:'rgba(88,45,30,A)',al:rev(lt,.95)});
+  const items=['Positionnement stratégique','Création d’identité culinaire','Création de cartes','Structuration opérationnelle','Optimisation des ratios','Accompagnement décisionnel'];
+  const cols=PORT?1:2,s=U*(PORT?46:40),rh=s*1.45,cw=mw/cols;
+  items.forEach((it,i)=>{const c=i%cols,r=Math.floor(i/cols),a=rev(lt,1.1+i*.16,.6);const px2=cols===1?W/2:W/2-cw/2+c*cw*.98-(c?0:0);
+    txt(x,it,cols===1?W/2:(c?W/2+GUT*.4:W/2-GUT*.4),y0+U*110+r*rh+(1-eo(a))*12*U,{font:`italic 300 ${s}px Cormorant`,col:'rgba(22,17,13,A)',al:a,align:cols===1?'center':(c?'left':'right')})});
+  if(!PORT){const a=rev(lt,1.5);x.fillStyle=`rgba(201,162,106,${a})`;x.fillRect(W/2-.5,y0+U*85,1,rh*3)}}
+// carton : développement international
+function cardWorld(x,p,lt){brownBG(x);const mw=W-2*GUT;
+  txt(x,'CONCEPTS CRÉATIFS SIGNÉS À',W/2,H*(PORT?.24:.2),{font:`500 ${U*20}px Inter`,ls:U*7,col:`rgba(${CREAM},A)`,al:rev(lt,.05)});
+  const cities=['Varsovie','Budapest','Dubaï','Bruges','Luxembourg','Casablanca','Marrakech','Miami'];
+  const cols=WIDE?4:2,s=U*(PORT?60:56),rh=s*1.35,cw=mw/cols,y0=H*(PORT?.33:.33);
+  cities.forEach((c,i)=>{const col=i%cols,r=Math.floor(i/cols),a=rev(lt,.15+i*.12,.5);txt(x,c,W/2-mw/2+cw*(col+.5),y0+r*rh+(1-eo(a))*14*U,{font:`300 ${s}px Cormorant`,col:'rgba(250,244,232,A)',al:a,blur:(1-a)*5*U})});
+  const yb=y0+Math.ceil(cities.length/cols)*rh+U*(PORT?60:40);rule(x,W/2,yb-U*30,U*60*eo(rev(lt,1.2)),rev(lt,1.2),CREAM);
+  const z=fit(x,'DÉVELOPPER LES CONCEPTS.','400 Spx Cormorant',U*(PORT?64:60),.14,mw);const a=rev(lt,1.3,.9);
+  txt(x,'DÉVELOPPER LES CONCEPTS.',W/2,yb+z*.5,{font:`400 ${z}px Cormorant`,ls:z*.14,col:'rgba(250,244,232,A)',al:a,blur:(1-a)*6*U})}
+// carton : références (autorisées par RESTO CONSEIL)
+function cardRefs(x,p,lt){paperBG(x);const mw=W-2*GUT;
+  txt(x,'PROJETS PRESTIGE PILOTÉS',W/2,H*(PORT?.24:.19),{font:`500 ${U*20}px Inter`,ls:U*7,col:'rgba(88,45,30,A)',al:rev(lt,.05)});
+  const refs=['Roland-Garros','Grand Prix de l’Arc de Triomphe','Six Senses Crans Montana','Parker Dubai'];
+  const s=fit(x,'Grand Prix de l’Arc de Triomphe','300 Spx Cormorant',U*(PORT?58:56),0,mw),rh=s*1.35,y0=H*(PORT?.33:.31);
+  refs.forEach((r,i)=>{const a=rev(lt,.25+i*.3,.7);txt(x,r,W/2,y0+i*rh+(1-eo(a))*12*U,{font:`300 ${s}px Cormorant`,col:'rgba(22,17,13,A)',al:a,blur:(1-a)*5*U})});
+  const yb=y0+refs.length*rh+U*30;rule(x,W/2,yb,U*60*eo(rev(lt,1.6)),rev(lt,1.6));
+  const im=IMG.accor,ah=U*(PORT?150:130),aw=ah*im.width/im.height;x.globalAlpha=rev(lt,1.8,.8);x.drawImage(im,W/2-aw/2,yb+U*40,aw,ah);x.globalAlpha=1}
+
+/* ---------- timeline ---------- */
+const SHOTS=[
+  {a:0,   b:4.5, d:(x,p)=>photo(x,'lounge',p,{f0:[.42,.55],f1:[.5,.5],z0:1.22,z1:1.02})},
+  {a:4.0, b:8.0, fi:.5,d:(x,p)=>photo(x,'desert',p,{f0:[.3,.6],f1:[.62,.6],z0:1.15,z1:1.08,frameY:.4})},
+  {a:8.0, b:10.0, d:(x,p)=>photo(x,'lounge',p,{f0:[.58,.2],f1:[.56,.3],z0:1.9,z1:1.7}), kick:'Création de concept'},
+  {a:10.0,b:12.0, d:(x,p)=>photo(x,'lounge',p,{f0:[.1,.35],f1:[.16,.42],z0:2.0,z1:1.8}), kick:'Identité du lieu'},
+  {a:12.0,b:14.0, d:(x,p)=>photo(x,'desert',p,{f0:[.45,.65],f1:[.55,.65],z0:1.6,z1:1.45,frameY:.4}), kick:'Expérience client'},
+  {a:14.0,b:18.0, d:cardAgency},
+  {a:18.0,b:22.0, d:(x,p,lt)=>WIDE?founderSplit(x,p,lt):photo(x,'portrait',p,{f0:[.5,.38],f1:[.5,.3],z0:1.0,z1:1.12,tint:'255,232,215'})},
+  {a:22.0,b:25.5, d:cardFounder},
+  {a:25.5,b:27.0, d:cardExpertises},
+  {a:27.0,b:31.0, d:cardValue},
+  {a:31.0,b:34.3, d:cardWorld},
+  {a:34.3,b:38.6, d:(x,p)=>photo(x,'desert',p,{f0:[.7,.45],f1:[.4,.45],z0:1.08,z1:1.02,frameY:.4}), kick:'Hôtellerie de luxe'},
+  {a:38.6,b:43.0, d:(x,p)=>photo(x,'lounge',p,{f0:[.6,.8],f1:[.5,.72],z0:1.6,z1:1.35}), kick:'Lifestyle & Food & Beverage'},
+  {a:43.0,b:47.6, d:cardRefs},
+  {a:47.3,b:49.3, fi:.3, d:(x,p)=>photo(x,'lounge',p,{f0:[.5,.5],f1:[.5,.5],z0:1.25,z1:1.0})},
+];
+const CUTS=[8,10,12,14,18,22,25.5,27,31,34.3,38.6,43];
+const CAPS=[
+  {a:.8, b:4.2, k:'it', t:'Chaque lieu raconte une histoire.'},
+  {a:4.6,b:7.85,k:'it', t:'Chaque concept commence par une vision.'},
+  {a:8.2, b:13.9,k:'caps', w:[['IMAGINER.',8.2],['CRÉER.',10.2],['DIFFÉRENCIER.',12.2]]},
+  {a:34.6,b:38.4,k:'caps', t:'SUBLIMER L’EXPÉRIENCE.'},
+  {a:38.9,b:42.85,k:'caps', t:'OPTIMISER LA PERFORMANCE.', sub:'Des modèles capables de conjuguer image, excellence et rentabilité.'},
+];
+function capStyle(x,k,z){if(k==='it'){x.font=`italic 300 ${z}px Cormorant`;x.letterSpacing='0px'}else{x.font=`400 ${z}px Cormorant`;x.letterSpacing=z*.13+'px'}}
+function captions(x,t){const cy=H*(PORT?.6:.68);
+  for(const c of CAPS){if(t<c.a||t>c.b)continue;const z=c.k==='it'?U*(PORT?84:76):U*(PORT?70:62),out=1-ss(c.b-.45,c.b,t),mw=W-2*GUT;capStyle(x,c.k,z);
+    let items=[];
+    if(c.w){const parts=c.w.map(([s,a])=>({s,a,w:x.measureText(s).width})),gap=z*.55,tot=parts.reduce((s,q)=>s+q.w,0)+gap*2;
+      if(tot<=mw){let px=W/2-tot/2;for(const q of parts){items.push({s:q.s,a:q.a,x:px+q.w/2,y:cy});px+=q.w+gap}}else parts.forEach((q,i)=>items.push({s:q.s,a:q.a,x:W/2,y:cy+(i-1)*z*1.12}))}
+    else{const L=wrap(x,c.t,mw);L.forEach((l,i)=>items.push({s:l,a:c.a+i*.18,x:W/2,y:cy+(i-(L.length-1)/2)*z*1.1}))}
+    const ys=items.map(i=>i.y),top=Math.min(...ys)-z*2.8,bot=Math.max(...ys)+z*(c.sub?4:2.8),v=ss(c.a,c.a+.5,t)*out;
+    x.fillStyle=lg(x,0,top,0,bot,[[0,'rgba(8,6,4,0)'],[.3,`rgba(8,6,4,${.35*v})`],[.5,`rgba(8,6,4,${.5*v})`],[.7,`rgba(8,6,4,${.35*v})`],[1,'rgba(8,6,4,0)']]);x.fillRect(0,top,W,bot-top);
+    x.textAlign='center';x.textBaseline='middle';
+    for(const it of items){const e=ss(it.a,it.a+.7,t),al=e*out;if(al<=0)continue;capStyle(x,c.k,z);if(c.k!=='it')x.letterSpacing=z*lerp(.3,.13,eo(ss(it.a,it.a+1.2,t)))+'px';
+      x.filter=`blur(${((1-e)*8*U).toFixed(2)}px)`;x.fillStyle=`rgba(250,244,232,${al})`;x.shadowColor='rgba(0,0,0,.5)';x.shadowBlur=24*U;
+      x.fillText(it.s,it.x+(c.k!=='it'?z*.065:0),it.y+(1-eo(e))*22*U);x.shadowColor='transparent';x.filter='none'}
+    if(c.sub){const s=U*(PORT?34:30),a=ss(c.a+.8,c.a+1.6,t)*out;x.font=`italic 300 ${s}px Cormorant`;x.letterSpacing='0px';const L=wrap(x,c.sub,mw);
+      L.forEach((l,i)=>{x.fillStyle=`rgba(${CREAM},${a})`;x.fillText(l,W/2,Math.max(...ys)+z*1.1+i*s*1.25)})}
+    x.letterSpacing='0px';x.textBaseline='alphabetic'}}
+function kicker(x,t){for(const s of SHOTS){if(!s.kick||t<s.a||t>=s.b)continue;const al=ss(s.a+.1,s.a+.45,t)*(1-ss(s.b-.25,s.b,t));
+  const fs=Math.round(U*(PORT?24:20)),y=PORT?H*.15:H-GUT*.9;x.font=`500 ${fs}px Inter`;x.letterSpacing=fs*.3+'px';x.textAlign='left';x.textBaseline='middle';
+  x.fillStyle=`rgba(201,162,106,${al})`;x.fillRect(GUT,y-1,U*44*eo(ss(s.a+.1,s.a+.6,t)),Math.max(1,1.5*U));
+  x.fillStyle=`rgba(236,214,170,${al})`;x.shadowColor='rgba(0,0,0,.5)';x.shadowBlur=12*U;x.fillText(s.kick.toUpperCase(),GUT+62*U,y);x.shadowColor='transparent';x.letterSpacing='0px';x.textBaseline='alphabetic'}}
+function lowerThird(x,t){const a=ss(18.6,19.4,t)*(1-ss(21.6,22,t));if(a<=0||WIDE)return;
+  const y=PORT?H*.74:H*.72,x0=PORT?W/2:GUT,al=PORT?'center':'left';
+  x.fillStyle=lg(x,0,y-U*160,0,H,[[0,'rgba(0,0,0,0)'],[.5,`rgba(0,0,0,${.55*a})`],[1,`rgba(0,0,0,${.7*a})`]]);x.fillRect(0,y-U*160,W,H-y+U*160);
+  txt(x,'MAXIME LÉONARD',x0,y,{font:`400 ${U*(PORT?58:54)}px Cormorant`,ls:U*8,col:'rgba(250,244,232,A)',al:a,align:al});
+  x.fillStyle=`rgba(201,162,106,${a})`;x.fillRect(PORT?W/2-U*30:x0,y+U*44,U*60,1.5*U);
+  txt(x,'FONDATEUR · RESTO CONSEIL',x0,y+U*80,{font:`500 ${U*20}px Inter`,ls:U*6,col:`rgba(${CREAM},A)`,al:ss(19,19.8,t)*(1-ss(21.6,22,t)),align:al})}
+/* ---------- signature : logo officiel ---------- */
+function endCard(x,t){const k=t-49.0;if(k<-.2)return;brownBG(x);
+  const lo=IMG.logoC,lw=U*(PORT?420:400),lh=lw*lo.height/lo.width,cy=H*(PORT?.4:.38);
+  const a=ss(0,1.4,k);x.save();x.globalAlpha=a;x.filter=`blur(${((1-a)*10*U).toFixed(2)}px)`;const sc=lerp(1.04,1,eo(ss(0,3,k)));
+  x.drawImage(lo,W/2-lw*sc/2,cy-lh*sc/2,lw*sc,lh*sc);x.restore();
+  const sw=ss(1.6,3.2,k);if(sw>0&&sw<1){x.save();x.globalCompositeOperation='lighter';const sx=lerp(W/2-lw/2,W/2+lw/2,sw);
+    x.fillStyle=rg(x,sx,cy,0,lw*.35,[[0,`rgba(255,226,180,${.18*Math.sin(Math.PI*sw)})`],[1,'rgba(255,226,180,0)']]);x.fillRect(0,0,W,H);x.restore()}
+  let y=cy+lh/2+U*(PORT?70:56);const mw=W-2*GUT;
+  const tz=fit(x,'RESTO CONSEIL','400 Spx Cormorant',U*(PORT?40:36),.42,mw);txt(x,'RESTO CONSEIL',W/2,y,{font:`400 ${tz}px Cormorant`,ls:tz*.42,col:'rgba(250,244,232,A)',al:ss(1.0,1.9,k)});
+  const ts=U*(PORT?46:42),tl=ss(2.0,2.9,k);x.font=`italic 300 ${ts}px Cormorant`;const tag='Des concepts singuliers. Des performances durables.';
+  const L=x.measureText(tag).width>mw?['Des concepts singuliers.','Des performances durables.']:[tag];y+=U*(PORT?80:70);
+  L.forEach((l,i)=>txt(x,l,W/2,y+i*ts*1.15+(1-eo(tl))*12*U,{font:`italic 300 ${ts}px Cormorant`,col:'rgba(250,244,232,A)',al:tl}));y+=(L.length-1)*ts*1.15+ts*1.3;
+  rule(x,W/2,y-ts*.35,U*60*eo(ss(2.8,3.6,k)),ss(2.8,3.6,k),CREAM);
+  const s2=fit(x,'CONSEIL  •  CRÉATION  •  DÉVELOPPEMENT','500 Spx Inter',U*(PORT?22:20),.34,mw);
+  txt(x,'CONSEIL  •  CRÉATION  •  DÉVELOPPEMENT',W/2,y+U*20,{font:`500 ${s2}px Inter`,ls:s2*.34,col:'rgba(201,162,106,A)',al:ss(3.2,4,k)});
+  txt(x,'www.resto-conseil.com',W/2,y+U*72,{font:`300 ${U*(PORT?26:22)}px Inter`,ls:U*3,col:'rgba(250,244,232,A)',al:.75*ss(4,4.8,k)});
+  if(k<.25){x.fillStyle=`rgba(0,0,0,${1-k/.25})`;x.fillRect(0,0,W,H)}}
+
+/* ---------- image ---------- */
+let T=0;
+function render(t){T=t;const fr=Math.round(t*30);
+  X.setTransform(1,0,0,1,0,0);X.fillStyle='#000';X.fillRect(0,0,cv.width,cv.height);X.setTransform(SC,0,0,SC,0,0);
+  const act=SHOTS.filter(s=>t>=s.a&&t<s.b);
+  act.forEach((s,i)=>{B.setTransform(1,0,0,1,0,0);B.clearRect(0,0,BC.width,BC.height);B.setTransform(SC,0,0,SC,0,0);B.save();s.d(B,(t-s.a)/(s.b-s.a),t-s.a);B.restore();
+    X.globalAlpha=i===0?1:(s.fi?ss(s.a,s.a+s.fi,t):1);X.setTransform(1,0,0,1,0,0);X.drawImage(BC,0,0);X.setTransform(SC,0,0,SC,0,0);X.globalAlpha=1});
+  for(const c of CUTS){const d=t-c;if(d<-.05||d>.45)continue;const a=d<0?ss(-.05,0,d):1-ss(0,.45,d),side=(c*7%2)<1?0:W;
+    X.save();X.globalCompositeOperation='screen';X.fillStyle=lg(X,side,0,W-side,0,[[0,`rgba(255,170,90,${.28*a})`],[.5,`rgba(255,140,60,${.06*a})`],[1,'rgba(0,0,0,0)']]);X.fillRect(0,0,W,H);X.restore()}
+  X.fillStyle=rg(X,W/2,H/2,Math.min(W,H)*.4,Math.hypot(W,H)*.62,[[0,'rgba(0,0,0,0)'],[1,'rgba(0,0,0,.5)']]);X.fillRect(0,0,W,H);
+  const blk=Math.max(1-ss(0,.9,t),t<49.2?ss(48.5,49.1,t):0);if(blk>0){X.fillStyle=`rgba(0,0,0,${blk})`;X.fillRect(0,0,W,H)}
+  captions(X,t);kicker(X,t);lowerThird(X,t);endCard(X,t);
+  X.save();X.globalCompositeOperation='overlay';X.globalAlpha=.06;const pt=X.createPattern(GRAIN[fr%4],'repeat'),r=R(fr*13+1);
+  pt.setTransform(new DOMMatrix().translate(r()*256,r()*256).scale(U*1.2));X.fillStyle=pt;X.fillRect(0,0,W,H);X.restore()}
+initTex();
+window.render=render;
+window.READY=Promise.all([ASSETS,document.fonts.load('300 40px Cormorant'),document.fonts.load('italic 300 40px Cormorant'),document.fonts.load('500 20px Inter')]).then(()=>true);
+if(!RENDER){document.body.classList.add('preview');const st=performance.now();READY.then(function loop(){render(((performance.now()-st)/1000)%DUR);requestAnimationFrame(loop)})}
+</script>
+</body>
+</html>
