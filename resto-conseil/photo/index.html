@@ -40,7 +40,7 @@ const BROWN='#582d1e', CREAM=[226,201,167], PAPER='#ebe9e5', INK='#16110d', GOLD
 
 /* ---------- assets ---------- */
 const IMG={};const load=(k,src)=>new Promise(r=>{const i=new Image();i.onload=()=>{IMG[k]=i;r()};i.src=src});
-const ASSETS=Promise.all([load('lounge','assets/lounge.jpg'),load('desert','assets/desert.jpg'),load('portrait','assets/portrait.jpg'),
+const ASSETS=Promise.all([load('lounge','assets/lounge.jpg'),load('desert','assets/desert.jpg'),
   load('logoC','assets/logo_cream.png'),load('logoI','assets/logo_ink.png'),load('accor','assets/accor.svg')]);
 let GRAIN,PAPERT;
 function initTex(){GRAIN=[0,1,2,3].map(k=>{const c=mkc(256,256),g=c.getContext('2d'),id=g.createImageData(256,256),r=R(100+k);
@@ -97,7 +97,7 @@ function founderSplit(x,p,lt){paperBG(x);const im=IMG.portrait,ph=H,pw=im.width*
   L.forEach((l,i)=>txt(x,l,x0,H*.3+U*175+i*U*66+(i>1?U*22:0)+(i>2?U*22:0),{font:`italic 300 ${U*50}px Cormorant`,col:'rgba(22,17,13,A)',al:rev(lt,.6+i*.25,.6),align:'left'}))}
 // carton : fondateur (après le portrait)
 function cardFounder(x,p,lt){brownBG(x);const cy=H*.44,mw=W-2*GUT;
-  txt(x,'PARCOURS',W/2,cy-U*(PORT?300:230),{font:`500 ${U*20}px Inter`,ls:U*7,col:`rgba(${CREAM},A)`,al:rev(lt,.1)});
+  txt(x,'MAXIME LÉONARD · FONDATEUR',W/2,cy-U*(PORT?300:230),{font:`500 ${U*20}px Inter`,ls:U*7,col:`rgba(${CREAM},A)`,al:rev(lt,.1)});
   const names=['L’Arpège','Lucas Carton','Le Divellec'];const z=fit(x,'Lucas Carton','300 Spx Cormorant',U*(PORT?92:84),0,mw);
   if(PORT)names.forEach((s,i)=>txt(x,s,W/2,cy-z*1.1+i*z*1.1,{font:`italic 300 ${z}px Cormorant`,col:'rgba(250,244,232,A)',al:rev(lt,.3+i*.3),blur:(1-rev(lt,.3+i*.3))*6*U}));
   else{const s=names.join('  ·  '),zz=fit(x,s,'italic 300 Spx Cormorant',U*84,0,mw);txt(x,s,W/2,cy-z*.3,{font:`italic 300 ${zz}px Cormorant`,col:'rgba(250,244,232,A)',al:rev(lt,.3),blur:(1-rev(lt,.3))*6*U})}
@@ -131,13 +131,21 @@ function cardWorld(x,p,lt){brownBG(x);const mw=W-2*GUT;
   const z=fit(x,'DÉVELOPPER LES CONCEPTS.','400 Spx Cormorant',U*(PORT?64:60),.14,mw);const a=rev(lt,1.3,.9);
   txt(x,'DÉVELOPPER LES CONCEPTS.',W/2,yb+z*.5,{font:`400 ${z}px Cormorant`,ls:z*.14,col:'rgba(250,244,232,A)',al:a,blur:(1-a)*6*U})}
 // carton : références (autorisées par RESTO CONSEIL)
-function cardRefs(x,p,lt){paperBG(x);const mw=W-2*GUT;
-  txt(x,'PROJETS PRESTIGE PILOTÉS',W/2,H*(PORT?.24:.19),{font:`500 ${U*20}px Inter`,ls:U*7,col:'rgba(88,45,30,A)',al:rev(lt,.05)});
-  const refs=['Roland-Garros','Grand Prix de l’Arc de Triomphe','Six Senses Crans Montana','Parker Dubai'];
-  const s=fit(x,'Grand Prix de l’Arc de Triomphe','300 Spx Cormorant',U*(PORT?58:56),0,mw),rh=s*1.35,y0=H*(PORT?.33:.31);
-  refs.forEach((r,i)=>{const a=rev(lt,.25+i*.3,.7);txt(x,r,W/2,y0+i*rh+(1-eo(a))*12*U,{font:`300 ${s}px Cormorant`,col:'rgba(22,17,13,A)',al:a,blur:(1-a)*5*U})});
-  const yb=y0+refs.length*rh+U*30;rule(x,W/2,yb,U*60*eo(rev(lt,1.6)),rev(lt,1.6));
-  const im=IMG.accor,ah=U*(PORT?150:130),aw=ah*im.width/im.height;x.globalAlpha=rev(lt,1.8,.8);x.drawImage(im,W/2-aw/2,yb+U*40,aw,ah);x.globalAlpha=1}
+// carton : projets & événements montés par RESTO CONSEIL
+function cardEvents(x,p,lt){brownBG(x);const mw=W-2*GUT;
+  txt(x,'PROJETS & ÉVÉNEMENTS PILOTÉS',W/2,H*(PORT?.2:.16),{font:`500 ${U*20}px Inter`,ls:U*7,col:`rgba(${CREAM},A)`,al:rev(lt,.05)});
+  const groups=[['ÉVÉNEMENTS',['Roland-Garros','Grand Prix de l’Arc de Triomphe']],['HÔTELLERIE DE LUXE',['Six Senses Crans Montana','Parker Dubai']]];
+  const s=fit(x,'Grand Prix de l’Arc de Triomphe','300 Spx Cormorant',U*(PORT?64:60),0,WIDE?mw/2-GUT*.5:mw),rh=s*1.3;
+  groups.forEach(([h,items],g)=>{const cx=WIDE?W/2+(g?1:-1)*mw/4:W/2,y0=WIDE?H*.36:H*(PORT?.3:.27)+g*(rh*2+U*150),a0=.2+g*1.2;
+    txt(x,h,cx,y0,{font:`500 ${U*18}px Inter`,ls:U*6,col:'rgba(201,162,106,A)',al:rev(lt,a0)});
+    items.forEach((it,i)=>{const a=rev(lt,a0+.3+i*.3,.7);txt(x,it,cx,y0+U*70+i*rh+(1-eo(a))*12*U,{font:`italic 300 ${s}px Cormorant`,col:'rgba(250,244,232,A)',al:a,blur:(1-a)*5*U})})});
+  if(WIDE){const a=rev(lt,1.2);x.fillStyle=`rgba(${CREAM},${.35*a})`;x.fillRect(W/2-.5,H*.33,1,rh*2+U*90)}}
+// carton : client
+function cardClient(x,p,lt){paperBG(x);
+  txt(x,'ILS NOUS FONT CONFIANCE',W/2,H*(PORT?.3:.24),{font:`500 ${U*22}px Inter`,ls:U*8,col:'rgba(88,45,30,A)',al:rev(lt,.1)});
+  rule(x,W/2,H*(PORT?.3:.24)+U*40,U*60*eo(rev(lt,.4)),rev(lt,.4));
+  const im=IMG.accor,ah=U*(PORT?300:270),aw=ah*im.width/im.height,a=rev(lt,.5,1.2),k=lerp(1.06,1,eo(ss(.5,4.5,lt)));
+  x.save();x.globalAlpha=a;x.filter=`blur(${((1-a)*8*U).toFixed(2)}px)`;x.drawImage(im,W/2-aw*k/2,H*(PORT?.47:.5)-ah*k/2,aw*k,ah*k);x.restore()}
 
 /* ---------- timeline ---------- */
 const SHOTS=[
@@ -147,14 +155,14 @@ const SHOTS=[
   {a:10.0,b:12.0, d:(x,p)=>photo(x,'lounge',p,{f0:[.1,.35],f1:[.16,.42],z0:2.0,z1:1.8}), kick:'Identité du lieu'},
   {a:12.0,b:14.0, d:(x,p)=>photo(x,'desert',p,{f0:[.45,.65],f1:[.55,.65],z0:1.6,z1:1.45,frameY:.4}), kick:'Expérience client'},
   {a:14.0,b:18.0, d:cardAgency},
-  {a:18.0,b:22.0, d:(x,p,lt)=>WIDE?founderSplit(x,p,lt):photo(x,'portrait',p,{f0:[.5,.38],f1:[.5,.3],z0:1.0,z1:1.12,tint:'255,232,215'})},
+  {a:18.0,b:22.0, d:cardEvents},
   {a:22.0,b:25.5, d:cardFounder},
   {a:25.5,b:27.0, d:cardExpertises},
   {a:27.0,b:31.0, d:cardValue},
   {a:31.0,b:34.3, d:cardWorld},
   {a:34.3,b:38.6, d:(x,p)=>photo(x,'desert',p,{f0:[.7,.45],f1:[.4,.45],z0:1.08,z1:1.02,frameY:.4}), kick:'Hôtellerie de luxe'},
   {a:38.6,b:43.0, d:(x,p)=>photo(x,'lounge',p,{f0:[.6,.8],f1:[.5,.72],z0:1.6,z1:1.35}), kick:'Lifestyle & Food & Beverage'},
-  {a:43.0,b:47.6, d:cardRefs},
+  {a:43.0,b:47.6, d:cardClient},
   {a:47.3,b:49.3, fi:.3, d:(x,p)=>photo(x,'lounge',p,{f0:[.5,.5],f1:[.5,.5],z0:1.25,z1:1.0})},
 ];
 const CUTS=[8,10,12,14,18,22,25.5,27,31,34.3,38.6,43];
@@ -220,7 +228,7 @@ function render(t){T=t;const fr=Math.round(t*30);
     X.save();X.globalCompositeOperation='screen';X.fillStyle=lg(X,side,0,W-side,0,[[0,`rgba(255,170,90,${.28*a})`],[.5,`rgba(255,140,60,${.06*a})`],[1,'rgba(0,0,0,0)']]);X.fillRect(0,0,W,H);X.restore()}
   X.fillStyle=rg(X,W/2,H/2,Math.min(W,H)*.4,Math.hypot(W,H)*.62,[[0,'rgba(0,0,0,0)'],[1,'rgba(0,0,0,.5)']]);X.fillRect(0,0,W,H);
   const blk=Math.max(1-ss(0,.9,t),t<49.2?ss(48.5,49.1,t):0);if(blk>0){X.fillStyle=`rgba(0,0,0,${blk})`;X.fillRect(0,0,W,H)}
-  captions(X,t);kicker(X,t);lowerThird(X,t);endCard(X,t);
+  captions(X,t);kicker(X,t);endCard(X,t);
   X.save();X.globalCompositeOperation='overlay';X.globalAlpha=.06;const pt=X.createPattern(GRAIN[fr%4],'repeat'),r=R(fr*13+1);
   pt.setTransform(new DOMMatrix().translate(r()*256,r()*256).scale(U*1.2));X.fillStyle=pt;X.fillRect(0,0,W,H);X.restore()}
 initTex();
